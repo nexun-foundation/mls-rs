@@ -6,6 +6,7 @@ use alloc::{borrow::Cow, vec::Vec};
 use mls_rs_codec::{MlsDecode, MlsEncode, MlsSize};
 use mls_rs_core::group::Member;
 
+use super::member_from_leaf_node;
 use crate::{
     client::MlsError,
     tree_kem::{
@@ -44,6 +45,13 @@ impl<'a> ExportedTree<'a> {
         Roster {
             public_tree: &self.0,
         }
+    }
+
+    #[cfg_attr(all(feature = "ffi", not(test)), safer_ffi_gen::safer_ffi_gen_ignore)]
+    pub fn members_iter(&'a self) -> impl Iterator<Item = Member> + 'a {
+        self.0
+            .non_empty_leaves()
+            .map(|(index, node)| member_from_leaf_node(node, index))
     }
 
     /// Returns a reference to the underlying vector of nodes in the tree.

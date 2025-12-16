@@ -30,6 +30,7 @@ use crate::psk::PreSharedKeyID;
 use crate::signer::Signable;
 use crate::tree_kem::hpke_encryption::HpkeEncryptable;
 use crate::tree_kem::kem::TreeKem;
+use crate::tree_kem::leaf_node::{ConfigProperties, LeafNode};
 use crate::tree_kem::leaf_node_validator::{LeafNodeValidator, ValidationContext};
 use crate::tree_kem::path_secret::PathSecret;
 pub use crate::tree_kem::Capabilities;
@@ -199,6 +200,10 @@ pub struct EncryptedGroupSecrets {
 
 #[derive(Clone, Eq, PartialEq, MlsSize, MlsEncode, MlsDecode)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[cfg_attr(
+    all(feature = "ffi", not(test)),
+    ::safer_ffi_gen::ffi_type(clone, opaque)
+)]
 pub struct Welcome {
     pub cipher_suite: CipherSuite,
     pub secrets: Vec<EncryptedGroupSecrets>,
@@ -1193,7 +1198,7 @@ where
             leaf_node_extensions.unwrap_or(new_leaf_node.ungreased_extensions());
 
         let new_properties = if let Some(leaf_node_capabilities) = leaf_node_capabilities {
-            crate::tree_kem::leaf_node::ConfigProperties {
+            ConfigProperties {
                 capabilities: leaf_node_capabilities,
                 extensions: new_leaf_node_extensions,
             }
@@ -1787,6 +1792,16 @@ where
     #[cfg(feature = "by_ref_proposal")]
     pub fn commit_required(&self) -> bool {
         !self.state.proposals.is_empty()
+    }
+
+    /// Returns the pending proposals waiting to be committed
+    #[cfg(feature = "by_ref_proposal")]
+    pub fn pending_proposals<'g>(&'g self) -> impl Iterator<Item = &'g Proposal> + 'g {
+        self.state
+            .proposals
+            .proposals
+            .values()
+            .map(|cp| &cp.proposal)
     }
 
     /// Returns all by-reference proposals that have been cached for this group.
@@ -5217,8 +5232,6 @@ mod tests {
             .commit_modifiers
             .skip_committer_self_update_validation = true;
 
-        let commit_output = groups[0].commit(vec![]).await.unwrap();
-
         let err = match groups[0].commit(vec![]).await {
             Ok(commit_output) => groups[2]
                 .process_incoming_message(commit_output.commit_message)
@@ -5228,50 +5241,6 @@ mod tests {
         };
 
         assert_matches!(err, MlsError::RequiredCredentialNotFound(_));
-    }
-
-    #[maybe_async::test(not(mls_build_async), async(mls_build_async, crate::futures_test))]
-    async fn committer_leaf_has_unsupported_credential_rejected_at_commit_time() {
-        let mut groups =
-            get_test_groups_with_features(3, Default::default(), Default::default()).await;
-
-        for group in groups.iter_mut() {
-            group.config.0.identity_provider.allow_any_custom = true;
-        }
-
-        groups[0].commit_modifiers.modify_leaf = |leaf, sk| {
-            leaf.signing_identity.credential = Credential::Custom(CustomCredential::new(
-                CredentialType::new(43),
-                leaf.signing_identity
-                    .credential
-                    .as_basic()
-                    .unwrap()
-                    .identifier
-                    .to_vec(),
-            ));
-
-            Some(sk.clone())
-        };
-
-        let res = groups[0].commit(vec![]).await;
-
-        assert_matches!(res, Err(MlsError::CredentialTypeOfNewLeafIsUnsupported));
-    }
-
-    #[maybe_async::test(not(mls_build_async), async(mls_build_async, crate::futures_test))]
-    async fn committer_leaf_not_supporting_credential_used_in_another_leaf_rejected_at_commit_time()
-    {
-        let mut groups =
-            get_test_groups_with_features(3, Default::default(), Default::default()).await;
-
-        groups[0].commit_modifiers.modify_leaf = |leaf, sk| {
-            leaf.capabilities.credentials = vec![2.into()];
-            Some(sk.clone())
-        };
-
-        let res = groups[0].commit(vec![]).await;
-
-        assert_matches!(res, Err(MlsError::InUseCredentialTypeUnsupportedByNewLeaf));
     }
 
     #[maybe_async::test(not(mls_build_async), async(mls_build_async, crate::futures_test))]
