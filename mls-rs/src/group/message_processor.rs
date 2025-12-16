@@ -851,12 +851,18 @@ pub(crate) trait MessageProcessor: Send + Sync {
             .await?;
 
         #[cfg(feature = "application_data")]
-        let application_data = provisional_state
-            .applied_proposals
-            .app_ephemeral_proposals()
-            .iter()
-            .map(|p| (p.proposal.component_id, p.proposal.data.clone()))
-            .collect::<BTreeMap<ComponentId, Vec<u8>>>();
+        let application_data = {
+            let mut data: BTreeMap<u32, Vec<Vec<u8>>> = BTreeMap::new();
+            for proposal in provisional_state
+                .applied_proposals
+                .app_ephemeral_proposals()
+            {
+                data.entry(proposal.proposal.component_id)
+                    .or_default()
+                    .push(proposal.proposal.data.clone());
+            }
+            data
+        };
 
         if let Some(confirmation_tag) = &auth_content.auth.confirmation_tag {
             if !is_self_removed {

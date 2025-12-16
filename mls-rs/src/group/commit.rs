@@ -662,6 +662,18 @@ where
                 .get_leaf_node(provisional_private_tree.self_index)?
                 .clone();
 
+            let updated_leaf_properties =
+                if let Some(new_leaf_node_capabilities) = new_leaf_node_capabilities {
+                    ConfigProperties {
+                        capabilities: new_leaf_node_capabilities,
+                        extensions: new_leaf_node_extensions,
+                    }
+                } else {
+                    self.config.leaf_properties(new_leaf_node_extensions)
+                };
+
+            let prior_provisional_state = provisional_state.clone();
+
             let encap_gen = TreeKem::new(
                 &mut provisional_state.public_tree,
                 &mut provisional_private_tree,
@@ -690,6 +702,17 @@ where
                     !self.commit_modifiers.skip_committer_self_update_validation,
                 )
                 .await?;
+
+            validate_update_path(
+                &self.identity_provider(),
+                self.cipher_suite_provider(),
+                encap_gen.update_path.clone(),
+                &prior_provisional_state,
+                LeafIndex::try_from(*self.private_tree.self_index)?,
+                None,
+                &provisional_state.group_context, // unused
+            )
+            .await?;
 
             (
                 Some(encap_gen.update_path),
@@ -903,12 +926,18 @@ where
         };
 
         #[cfg(feature = "application_data")]
-        let application_data = provisional_state
-            .applied_proposals
-            .app_ephemeral_proposals()
-            .iter()
-            .map(|p| (p.proposal.component_id, p.proposal.data.clone()))
-            .collect::<BTreeMap<ComponentId, Vec<u8>>>();
+        let application_data = {
+            let mut data: BTreeMap<u32, Vec<Vec<u8>>> = BTreeMap::new();
+            for proposal in provisional_state
+                .applied_proposals
+                .app_ephemeral_proposals()
+            {
+                data.entry(proposal.proposal.component_id)
+                    .or_default()
+                    .push(proposal.proposal.data.clone());
+            }
+            data
+        };
 
         let welcome_messages =
             if commit_options.single_welcome_message && !encrypted_path_secrets.is_empty() {
@@ -1499,9 +1528,9 @@ mod tests {
         let current_leaf_node = groups[0].current_user_leaf_node().unwrap();
         let mut capabilities = current_leaf_node.capabilities.clone();
         capabilities.credentials.push(CredentialType::new(42));
-        capabilities.extensions.push(ExtensionType::new(42));
+        capabilities.extensions.push(ExtensionType::APPLICATION_ID);
 
-        let test_ext = Extension::new(ExtensionType::new(42), b"1234".to_vec());
+        let test_ext = Extension::new(ExtensionType::APPLICATION_ID, b"1234".to_vec());
         let mut extensions = current_leaf_node.extensions.clone();
         extensions.0.push(test_ext.clone());
 
@@ -1547,9 +1576,9 @@ mod tests {
         assert!(!current_leaf_node
             .capabilities
             .extensions
-            .contains(&ExtensionType::new(42)));
+            .contains(&ExtensionType::APPLICATION_ID));
 
-        let test_ext = Extension::new(ExtensionType::new(42), b"1234".to_vec());
+        let test_ext = Extension::new(ExtensionType::APPLICATION_ID, b"1234".to_vec());
         let mut extensions = current_leaf_node.extensions.clone();
         extensions.0.push(test_ext.clone());
 
@@ -1560,7 +1589,7 @@ mod tests {
             .await;
         assert!(matches!(
             commit.unwrap_err(),
-            MlsError::ExtensionNotInCapabilities(et) if *et == 42
+            MlsError::ExtensionNotInCapabilities(ExtensionType::APPLICATION_ID)
         ));
     }
 

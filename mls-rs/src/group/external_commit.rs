@@ -122,15 +122,9 @@ impl<C: ClientConfig> ExternalCommitBuilder<C> {
         }
     }
 
-    /// Add an AppEphemeral proposal
+    #[must_use]
     #[cfg(feature = "application_data")]
-    pub fn with_app_ephemeral(mut self, proposal: AppEphemeralProposal) -> Result<Self, MlsError> {
-        self.app_ephemeral.insert(proposal.component_id, proposal);
-        Ok(self)
-    }
-
     /// Add an application data update proposal
-    #[cfg(feature = "application_data")]
     pub fn with_application_data_update(
         mut self,
         data: AppDataUpdateProposal,

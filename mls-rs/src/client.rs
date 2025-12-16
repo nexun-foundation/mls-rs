@@ -35,6 +35,7 @@ use crate::group::external_commit::ExternalCommitBuilder;
 
 #[cfg(feature = "by_ref_proposal")]
 use alloc::boxed::Box;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 #[cfg_attr(feature = "std", derive(thiserror::Error))]
@@ -453,7 +454,6 @@ where
 
     /// Same as ['generate_key_package_message'] but batching
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-    #[cfg(feature = "std")]
     pub async fn generate_key_package_messages(
         &self,
         key_package_extensions: ExtensionList,
@@ -461,7 +461,7 @@ where
         count: usize,
         signing_identity: &SigningIdentity,
     ) -> Result<Vec<MlsMessage>, MlsError> {
-        let mut kps_data = std::collections::HashMap::with_capacity(count);
+        let mut kps_data = HashMap::with_capacity(count);
         let mut kps = Vec::with_capacity(count);
         for _ in 0..count {
             let kp_gen = self
@@ -861,7 +861,6 @@ where
     /// welcome message can be used by [join_group](Client::join_group).
     #[cfg(feature = "by_ref_proposal")]
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-    #[allow(clippy::too_many_arguments)]
     pub async fn external_add_proposal_with(
         &self,
         group_info: &MlsMessage,
@@ -948,11 +947,12 @@ where
         })
     }
 
+    #[cfg_attr(all(feature = "ffi", not(test)), safer_ffi_gen::safer_ffi_gen_ignore)]
     pub fn signer(&self) -> Result<&SignatureSecretKey, MlsError> {
         self.signer.as_ref().ok_or(MlsError::SignerNotFound)
     }
 
-    pub fn signing_identity(&self) -> Result<(&SigningIdentity, CipherSuite), MlsError> {
+    pub fn signing_identity(&self) -> Result<&SigningIdentity, MlsError> {
         self.signing_identity
             .as_ref()
             .ok_or(MlsError::SignerNotFound)
@@ -980,6 +980,7 @@ where
     }
 
     /// The [IdentityProvider](crate::IdentityProvider) that this client was configured to use.
+    #[cfg_attr(all(feature = "ffi", not(test)), safer_ffi_gen::safer_ffi_gen_ignore)]
     pub fn config(&self) -> &C {
         &self.config
     }
@@ -989,6 +990,7 @@ where
     }
 
     /// The [CryptoProvider](crate::CryptoProvider) that this client was configured to use.
+    #[cfg_attr(all(feature = "ffi", not(test)), safer_ffi_gen::safer_ffi_gen_ignore)]
     pub fn crypto_provider(&self) -> <C as ClientConfig>::CryptoProvider {
         self.config.crypto_provider()
     }
