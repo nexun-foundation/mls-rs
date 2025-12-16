@@ -6,26 +6,32 @@ use assert_matches::assert_matches;
 use cfg_if::cfg_if;
 use mls_rs::client_builder::MlsConfig;
 use mls_rs::error::MlsError;
+#[cfg(feature = "by_ref_proposal")]
 use mls_rs::extension::built_in::ExternalSendersExt;
+#[cfg(feature = "application_data")]
+use mls_rs::group::{proposal::AppDataUpdateOperation, APPLICATION_DATA};
+
 use mls_rs::group::proposal::Proposal;
 use mls_rs::group::ReceivedMessage;
+use mls_rs::identity::basic::BasicIdentityProvider;
 use mls_rs::identity::SigningIdentity;
 use mls_rs::mls_rules::CommitOptions;
 use mls_rs::ExtensionList;
 use mls_rs::MlsMessage;
+use mls_rs::MlsRules;
 use mls_rs::ProtocolVersion;
+
+#[cfg(feature = "private_message")]
+use mls_rs::client_builder::PaddingMode;
+
 #[cfg(feature = "application_data")]
 use mls_rs::{
-    client_builder::PaddingMode,
-    group::{ApplicationDataDictionary, ComponentId, APPLICATION_DATA},
-    identity::basic::BasicIdentityProvider,
+    group::{ApplicationDataDictionary, ComponentId},
     mls_rules::{DefaultMlsRules, EncryptionOptions},
-    MlsRules,
 };
 use mls_rs::{CipherSuite, Group};
 use mls_rs::{Client, CryptoProvider};
 use mls_rs_core::crypto::CipherSuiteProvider;
-#[cfg(feature = "application_data")]
 use mls_rs_core::identity::BasicCredential;
 use rand::prelude::IndexedMutRandom;
 use rand::RngCore;
@@ -411,7 +417,7 @@ async fn test_application_messages(
 
         for _ in 0..message_count {
             // Encrypt the application message
-            let ciphertext = groups[i]
+            let (ciphertext, _) = groups[i]
                 .encrypt_application_message(&test_message, Vec::new())
                 .await
                 .unwrap();
@@ -440,7 +446,7 @@ async fn test_out_of_order_application_messages() {
     let mut alice_group = groups[0].clone();
     let bob_group = &mut groups[1];
 
-    let ciphertext = alice_group
+    let (ciphertext, _) = alice_group
         .encrypt_application_message(&[0], Vec::new())
         .await
         .unwrap();
@@ -451,7 +457,8 @@ async fn test_out_of_order_application_messages() {
         alice_group
             .encrypt_application_message(&[1], Vec::new())
             .await
-            .unwrap(),
+            .unwrap()
+            .0,
     );
 
     let commit = alice_group.commit(Vec::new()).await.unwrap().commit_message;
@@ -464,14 +471,16 @@ async fn test_out_of_order_application_messages() {
         alice_group
             .encrypt_application_message(&[2], Vec::new())
             .await
-            .unwrap(),
+            .unwrap()
+            .0,
     );
 
     ciphertexts.push(
         alice_group
             .encrypt_application_message(&[3], Vec::new())
             .await
-            .unwrap(),
+            .unwrap()
+            .0,
     );
 
     for i in [3, 2, 1, 0] {
@@ -505,7 +514,7 @@ async fn processing_message_from_self_returns_error(
         get_test_groups(protocol_version, cipher_suite, 1, encrypt_controls).await;
     let creator_group = &mut creator_group[0];
 
-    let msg = creator_group
+    let (msg, _) = creator_group
         .encrypt_application_message(b"hello self", vec![])
         .await
         .unwrap();
@@ -515,7 +524,13 @@ async fn processing_message_from_self_returns_error(
         .await
         .unwrap_err();
 
-    assert_matches!(error, MlsError::CantProcessMessageFromSelf);
+    assert_matches!(
+        error,
+        MlsError::CantProcessAppMessageFromSelf {
+            epoch: 1,
+            generation: 0
+        }
+    );
 }
 
 #[cfg(feature = "private_message")]
@@ -744,11 +759,14 @@ async fn reinit_works() {
 
     // Bob produces key package, alice commits, bob joins
     let kp = bob2.generate_key_package(None).await.unwrap();
-    let (mut alice_group, welcome) = alice2
+    let (mut alice_group, commit_output) = alice2
         .commit(vec![kp], Default::default(), None)
         .await
         .unwrap();
-    let (mut bob_group, _) = bob2.join(&welcome[0], None, None).await.unwrap();
+    let (mut bob_group, _) = bob2
+        .join(&commit_output.welcome_messages[0], None, None)
+        .await
+        .unwrap();
 
     assert!(bob_group.cipher_suite() == suite2);
 
@@ -1035,10 +1053,10 @@ async fn reinit_cannot_remove_clients() {
     assert_matches!(res, Err(MlsError::NotASubgroup));
 }
 
-#[cfg(feature = "application_data")]
+#[cfg(all(feature = "application_data", feature = "private_message"))]
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
 async fn test_application_data_proposals(
-    protocol_version: ProtocolVersion,
+    _protocol_version: ProtocolVersion,
     cipher_suite: CipherSuite,
     participants: usize,
     encrypt_controls: bool,
@@ -1061,17 +1079,18 @@ async fn test_application_data_proposals(
         rules,
         #[cfg(feature = "by_ref_proposal")]
         None,
-    );
+    )
+    .await;
 
-    let committer = (0..groups.len()).choose_multiple(&mut rand::thread_rng(), 1)[0];
+    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
 
     let commit_output = groups[committer]
         .commit_builder()
-        .application_data(10, b"hello".to_vec())
+        .application_data_update(10, AppDataUpdateOperation::Update(b"hello".to_vec()))
         .unwrap()
-        .application_data(12, b"hi".to_vec())
+        .application_data_update(12, AppDataUpdateOperation::Update(b"hi".to_vec()))
         .unwrap()
-        .application_data(10, b"world".to_vec())
+        .application_data_update(10, AppDataUpdateOperation::Update(b"world".to_vec()))
         .unwrap()
         .build()
         .await
@@ -1096,6 +1115,7 @@ async fn test_application_data_proposals(
             group.apply_pending_commit().await.unwrap()
         };
 
+        #[allow(clippy::unnecessary_unwrap)]
         if app_data.is_none() {
             app_data = Some(description.application_data);
         } else {
@@ -1120,7 +1140,7 @@ async fn test_group_application_data_proposals() {
 #[cfg(feature = "application_data")]
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
 async fn test_application_data_update_proposals(
-    protocol_version: ProtocolVersion,
+    _protocol_version: ProtocolVersion,
     cipher_suite: CipherSuite,
     participants: usize,
     encrypt_controls: bool,
@@ -1145,17 +1165,15 @@ async fn test_application_data_update_proposals(
         rules,
         #[cfg(feature = "by_ref_proposal")]
         None,
-    );
+    )
+    .await;
 
-    let committer = (0..groups.len()).choose_multiple(&mut rand::thread_rng(), 1)[0];
+    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
     let commit_output = groups[committer]
         .commit_builder()
-        .application_data_update(
-            10,
-            ApplicationDataUpdateOperation::Update(b"hello".to_vec()),
-        )
+        .application_data_update(10, AppDataUpdateOperation::Update(b"hello".to_vec()))
         .unwrap()
-        .application_data_update(12, ApplicationDataUpdateOperation::Update(b"hi".to_vec()))
+        .application_data_update(12, AppDataUpdateOperation::Update(b"hi".to_vec()))
         .unwrap()
         .build()
         .await
@@ -1184,15 +1202,12 @@ async fn test_application_data_update_proposals(
         }
     );
 
-    let committer = (0..groups.len()).choose_multiple(&mut rand::thread_rng(), 1)[0];
+    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
     let commit_output = groups[committer]
         .commit_builder()
-        .application_data_update(
-            10,
-            ApplicationDataUpdateOperation::Update(b"world".to_vec()),
-        )
+        .application_data_update(10, AppDataUpdateOperation::Update(b"world".to_vec()))
         .unwrap()
-        .application_data_update(12, ApplicationDataUpdateOperation::Remove)
+        .application_data_update(12, AppDataUpdateOperation::Remove)
         .unwrap()
         .build()
         .await
@@ -1224,7 +1239,7 @@ async fn test_group_application_data_update_proposals() {
 #[cfg(feature = "application_data")]
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
 async fn test_application_data_update_invalid_proposals(
-    protocol_version: ProtocolVersion,
+    _protocol_version: ProtocolVersion,
     cipher_suite: CipherSuite,
     participants: usize,
     encrypt_controls: bool,
@@ -1252,52 +1267,46 @@ async fn test_application_data_update_invalid_proposals(
     )
     .await;
 
-    let committer = (0..groups.len()).choose_multiple(&mut rand::thread_rng(), 1)[0];
+    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
     // unknown component id
-    assert_eq!(
-        groups[committer]
-            .commit_builder()
-            .application_data_update(10, AppDataUpdateOperation::Update(b"hello".to_vec()),)
-            .unwrap()
-            .application_data_update(42, AppDataUpdateOperation::Update(b"hi".to_vec()))
-            .unwrap()
-            .build()
-            .unwrap_err()
-            .to_string(),
-        "Invalid application data update proposal"
-    );
+    let err = groups[committer]
+        .commit_builder()
+        .application_data_update(10, AppDataUpdateOperation::Update(b"hello".to_vec()))
+        .unwrap()
+        .application_data_update(42, AppDataUpdateOperation::Update(b"hi".to_vec()))
+        .unwrap()
+        .build()
+        .await
+        .unwrap_err();
+    assert_eq!(err.to_string(), "Invalid application data update proposal");
 
     // multiple remove operations for the same component
-    assert_eq!(
-        groups[committer]
-            .commit_builder()
-            .application_data_update(10, AppDataUpdateOperation::Remove,)
-            .unwrap()
-            .application_data_update(12, AppDataUpdateOperation::Update(b"hi".to_vec()))
-            .unwrap()
-            .application_data_update(10, AppDataUpdateOperation::Remove,)
-            .unwrap()
-            .build()
-            .unwrap_err()
-            .to_string(),
-        "Invalid application data update proposal"
-    );
+    let err = groups[committer]
+        .commit_builder()
+        .application_data_update(10, AppDataUpdateOperation::Remove)
+        .unwrap()
+        .application_data_update(12, AppDataUpdateOperation::Update(b"hi".to_vec()))
+        .unwrap()
+        .application_data_update(10, AppDataUpdateOperation::Remove)
+        .unwrap()
+        .build()
+        .await
+        .unwrap_err();
+    assert_eq!(err.to_string(), "Invalid application data update proposal");
 
     // update and remove operations for the same component
-    assert_eq!(
-        groups[committer]
-            .commit_builder()
-            .application_data_update(10, AppDataUpdateOperation::Update(b"hello".to_vec()),)
-            .unwrap()
-            .application_data_update(12, AppDataUpdateOperation::Update(b"hi".to_vec()))
-            .unwrap()
-            .application_data_update(10, AppDataUpdateOperation::Remove,)
-            .unwrap()
-            .build()
-            .unwrap_err()
-            .to_string(),
-        "Invalid application data update proposal"
-    );
+    let err = groups[committer]
+        .commit_builder()
+        .application_data_update(10, AppDataUpdateOperation::Update(b"hello".to_vec()))
+        .unwrap()
+        .application_data_update(12, AppDataUpdateOperation::Update(b"hi".to_vec()))
+        .unwrap()
+        .application_data_update(10, AppDataUpdateOperation::Remove)
+        .unwrap()
+        .build()
+        .await
+        .unwrap_err();
+    assert_eq!(err.to_string(), "Invalid application data update proposal");
 }
 
 #[cfg(feature = "application_data")]
@@ -1306,7 +1315,11 @@ async fn test_group_application_data_update_invalid_proposals() {
     test_on_all_params(test_application_data_update_invalid_proposals).await;
 }
 
-#[cfg(all(feature = "by_ref_proposal", feature = "application_data"))]
+#[cfg(all(
+    feature = "by_ref_proposal",
+    feature = "application_data",
+    feature = "external_client"
+))]
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
 async fn test_application_data_update_external_proposals(
     protocol_version: ProtocolVersion,
@@ -1330,8 +1343,7 @@ async fn test_application_data_update_external_proposals(
 
     let crypto = TestCryptoProvider::new();
     let idp = BasicIdentityProvider::new();
-    let credential =
-        BasicCredential::new(format!("external").as_bytes().to_vec()).into_credential();
+    let credential = BasicCredential::new(b"external".to_vec()).into_credential();
     let cs_crypto = crypto.cipher_suite_provider(cipher_suite).unwrap();
     let (secret, public) = cs_crypto.signature_key_generate().unwrap();
     let signing_identity = SigningIdentity::new(credential, public);
@@ -1358,13 +1370,13 @@ async fn test_application_data_update_external_proposals(
 
     // send the external proposal
     let mut external_group = client
-        .observe_group(group_info, Some(tree_data))
+        .observe_group(group_info, Some(tree_data), None)
         .await
         .unwrap();
     let message = external_group
         .propose_application_data_update(
             10,
-            ApplicationDataUpdateOperation::Update(b"hello".to_vec()),
+            AppDataUpdateOperation::Update(b"hello".to_vec()),
             vec![],
         )
         .unwrap();
@@ -1376,7 +1388,7 @@ async fn test_application_data_update_external_proposals(
     }
 
     // one of the members commits the proposal and sends to other members
-    let committer = (0..groups.len()).choose_multiple(&mut rand::thread_rng(), 1)[0];
+    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
     let commit_output = groups[committer].commit_builder().build().await.unwrap();
 
     let sender = groups[committer].current_member_index() as usize;
@@ -1400,14 +1412,13 @@ async fn test_application_data_update_external_proposals(
     let group_info = groups[0].group_info_message(true).unwrap();
     let tree_data = groups[0].export_tree();
     let _external_group = client
-        .observe_group(group_info, Some(tree_data))
+        .observe_group(group_info, Some(tree_data), None)
         .await
         .unwrap();
 
     // now, try with an invalid external sender
     let unauthorized_credential =
-        BasicCredential::new(format!("unauthorized_external").as_bytes().to_vec())
-            .into_credential();
+        BasicCredential::new(b"unauthorized_external".to_vec()).into_credential();
     let (unauthorized_secret, unauthorized_public) = cs_crypto.signature_key_generate().unwrap();
     let unauthorized_signing_identity =
         SigningIdentity::new(unauthorized_credential, unauthorized_public);
@@ -1426,7 +1437,7 @@ async fn test_application_data_update_external_proposals(
 
     // send the external proposal
     let mut unauthorized_external_group = unauthorized_client
-        .observe_group(group_info, Some(tree_data))
+        .observe_group(group_info, Some(tree_data), None)
         .await
         .unwrap();
     assert_matches!(
@@ -1441,7 +1452,11 @@ async fn test_application_data_update_external_proposals(
     );
 }
 
-#[cfg(feature = "application_data")]
+#[cfg(all(
+    feature = "by_ref_proposal",
+    feature = "application_data",
+    feature = "external_client"
+))]
 #[maybe_async::test(not(mls_build_async), async(mls_build_async, futures_test))]
 async fn test_group_application_data_update_external_proposals() {
     test_on_all_params(test_application_data_update_external_proposals).await;
@@ -1493,7 +1508,7 @@ impl MlsRules for ApplicationDataRules {
         &self,
         direction: mls_rs::mls_rules::CommitDirection,
         source: mls_rs::mls_rules::CommitSource,
-        current_roster: &mls_rs::group::Roster<'_>,
+        current_roster: &mls_rs::group::Roster,
         current_context: &mls_rs_core::group::GroupContext,
         proposals: mls_rs::mls_rules::ProposalBundle,
     ) -> Result<mls_rs::mls_rules::ProposalBundle, Self::Error> {
@@ -1505,6 +1520,7 @@ impl MlsRules for ApplicationDataRules {
                 current_context,
                 proposals,
             )
+            .await
             .map_err(|_| unreachable!())
     }
 
@@ -1549,12 +1565,9 @@ impl MlsRules for ApplicationDataRules {
         v.extend(update);
         Ok(v)
     }
+
     #[cfg(feature = "application_data")]
-    async fn validate_component_data(
-        &self,
-        _component_id: ComponentId,
-        _component_data: &[u8],
-    ) -> bool {
+    fn validate_component_data(&self, _component_id: ComponentId, _component_data: &[u8]) -> bool {
         true
     }
 }
@@ -1566,7 +1579,7 @@ async fn get_test_group_with_rules<Rules: MlsRules + Clone>(
     rules: Rules,
     #[cfg(feature = "by_ref_proposal")] ext_identity: Option<SigningIdentity>,
 ) -> Vec<Group<impl MlsConfig>> {
-    let creator = setup_mls_client(0, cipher_suite, rules.clone());
+    let creator = setup_mls_client(0, cipher_suite, rules.clone()).await;
 
     #[cfg(not(feature = "by_ref_proposal"))]
     let group_context_extensions: ExtensionList = Default::default();
@@ -1580,7 +1593,11 @@ async fn get_test_group_with_rules<Rules: MlsRules + Clone>(
     }
 
     let mut creator_group = creator
-        .create_group(group_context_extensions, Default::default())
+        .create_group(
+            group_context_extensions,
+            Default::default(),
+            Default::default(),
+        )
         .await
         .unwrap();
 
@@ -1588,10 +1605,14 @@ async fn get_test_group_with_rules<Rules: MlsRules + Clone>(
     let mut receiver_clients = vec![];
 
     for i in 1..num_participants {
-        let client = setup_mls_client(i, cipher_suite, rules.clone());
+        let client = setup_mls_client(i, cipher_suite, rules.clone()).await;
 
         let kp = client
-            .generate_key_package_message(Default::default(), Default::default())
+            .generate_key_package_message(
+                Default::default(),
+                Default::default(),
+                Default::default(),
+            )
             .await
             .unwrap();
 
@@ -1609,7 +1630,7 @@ async fn get_test_group_with_rules<Rules: MlsRules + Clone>(
 
     for client in &receiver_clients {
         let (test_client, _info) = client
-            .join_group(Some(tree_data.clone()), &welcome[0])
+            .join_group(Some(tree_data.clone()), &welcome[0], None)
             .await
             .unwrap();
 
@@ -1618,8 +1639,8 @@ async fn get_test_group_with_rules<Rules: MlsRules + Clone>(
     groups
 }
 
-#[cfg(feature = "application_data")]
-pub(crate) fn setup_mls_client<Rules: MlsRules + Clone>(
+#[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
+pub(crate) async fn setup_mls_client<Rules: MlsRules + Clone>(
     id: usize,
     cipher_suite: CipherSuite,
     rules: Rules,
@@ -1630,17 +1651,20 @@ pub(crate) fn setup_mls_client<Rules: MlsRules + Clone>(
     let idp = BasicIdentityProvider::new();
 
     let cs_crypto = crypto.cipher_suite_provider(cipher_suite).unwrap();
-    let (secret, public) = cs_crypto.signature_key_generate().unwrap();
+    let (secret, public) = cs_crypto.signature_key_generate().await.unwrap();
     let signing_identity = SigningIdentity::new(credential, public);
 
-    let client = Client::builder()
+    let mut client = Client::builder()
         .ciphersuite(cipher_suite)
         .crypto_provider(crypto)
         .identity_provider(idp)
         .signing_identity(signing_identity, secret)
-        .mls_rules(rules)
-        .extension_type(APPLICATION_DATA)
-        .build();
+        .mls_rules(rules);
 
-    client
+    #[cfg(feature = "application_data")]
+    {
+        client = client.extension_type(APPLICATION_DATA);
+    }
+
+    client.build()
 }

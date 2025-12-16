@@ -81,7 +81,7 @@ fn make_client(name: &str) -> Client<impl MlsConfig> {
                 public_key,
             ),
             secret_key,
-            cipher_suite,
         )
+        .ciphersuite(cipher_suite)
         .build()
 }

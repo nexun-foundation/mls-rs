@@ -25,7 +25,7 @@ fn bench(c: &mut Criterion) {
                 b.iter_batched_ref(
                     || group_states.clone(),
                     move |group_states| {
-                        let msg = group_states
+                        let (msg, _) = group_states
                             .sender
                             .encrypt_application_message(&bytes[..n], vec![])
                             .unwrap();

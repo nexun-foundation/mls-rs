@@ -30,7 +30,7 @@ use crate::psk::PreSharedKeyID;
 use crate::signer::Signable;
 use crate::tree_kem::hpke_encryption::HpkeEncryptable;
 use crate::tree_kem::kem::TreeKem;
-use crate::tree_kem::leaf_node::{ConfigProperties, LeafNode};
+use crate::tree_kem::leaf_node::LeafNode;
 use crate::tree_kem::leaf_node_validator::{LeafNodeValidator, ValidationContext};
 use crate::tree_kem::path_secret::PathSecret;
 pub use crate::tree_kem::Capabilities;
@@ -200,10 +200,6 @@ pub struct EncryptedGroupSecrets {
 
 #[derive(Clone, Eq, PartialEq, MlsSize, MlsEncode, MlsDecode)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[cfg_attr(
-    all(feature = "ffi", not(test)),
-    ::safer_ffi_gen::ffi_type(clone, opaque)
-)]
 pub struct Welcome {
     pub cipher_suite: CipherSuite,
     pub secrets: Vec<EncryptedGroupSecrets>,
@@ -323,7 +319,7 @@ where
             &signer,
             config.lifetime(maybe_now_time),
         )
-            .await?;
+        .await?;
 
         let (mut public_tree, private_tree) = TreeKemPublic::derive(
             leaf_node,
@@ -331,7 +327,7 @@ where
             &config.identity_provider(),
             &group_context_extensions,
         )
-            .await?;
+        .await?;
 
         let tree_hash = public_tree.tree_hash(&cipher_suite_provider).await?;
 
@@ -381,21 +377,21 @@ where
             #[cfg(any(feature = "secret_tree_access", feature = "private_message"))]
             public_tree.total_leaf_count(),
         )
-            .await?;
+        .await?;
 
         let confirmation_tag = ConfirmationTag::create(
             &key_schedule_result.confirmation_key,
             &vec![].into(),
             &cipher_suite_provider,
         )
-            .await?;
+        .await?;
 
         let interim_hash = InterimTranscriptHash::create(
             &cipher_suite_provider,
             &vec![].into(),
             &confirmation_tag,
         )
-            .await?;
+        .await?;
 
         Ok(Self {
             config,
@@ -1198,7 +1194,7 @@ where
             leaf_node_extensions.unwrap_or(new_leaf_node.ungreased_extensions());
 
         let new_properties = if let Some(leaf_node_capabilities) = leaf_node_capabilities {
-            ConfigProperties {
+            crate::tree_kem::leaf_node::ConfigProperties {
                 capabilities: leaf_node_capabilities,
                 extensions: new_leaf_node_extensions,
             }
@@ -1553,12 +1549,21 @@ where
             let (ciphertext, generation) = self.create_ciphertext(content).await?;
             (MlsMessagePayload::Cipher(ciphertext), Some(generation))
         } else {
-            (MlsMessagePayload::Plain(self.create_plaintext(content).await?), None)
+            (
+                MlsMessagePayload::Plain(self.create_plaintext(content).await?),
+                None,
+            )
         };
         #[cfg(not(feature = "private_message"))]
-        let payload = MlsMessagePayload::Plain(self.create_plaintext(content).await?);
+        let (payload, generation) = (
+            MlsMessagePayload::Plain(self.create_plaintext(content).await?),
+            None,
+        );
 
-        Ok((MlsMessage::new(self.protocol_version(), payload), generation))
+        Ok((
+            MlsMessage::new(self.protocol_version(), payload),
+            generation,
+        ))
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
@@ -1627,7 +1632,9 @@ where
         .await?;
 
         let (mls_message, Some(generation)) = self.format_for_wire(auth_content).await? else {
-            return Err(MlsError::ImplementationError("Encrypting an app message should return the generation"))
+            return Err(MlsError::ImplementationError(
+                "Encrypting an app message should return the generation",
+            ));
         };
         Ok((mls_message, generation))
     }
@@ -1783,16 +1790,16 @@ where
         !self.state.proposals.is_empty()
     }
 
-<<<<<<< HEAD
     /// Returns the pending proposals waiting to be committed
-    #[cfg(feature = "by_ref_proposal")]
+    #[cfg(all(feature = "by_ref_proposal", feature = "std"))]
     pub fn pending_proposals<'g>(&'g self) -> impl Iterator<Item = &'g Proposal> + 'g {
         self.state
             .proposals
             .proposals
             .values()
             .map(|cp| &cp.proposal)
-=======
+    }
+
     /// Returns all by-reference proposals that have been cached for this group.
     ///
     /// The returned [`CachedProposal`] values contain the proposal content,
@@ -1809,7 +1816,6 @@ where
                 sender: cached.sender,
             })
             .collect()
->>>>>>> 191a511f (Add get_cached_proposals() method to Group and ExternalGroup (#341))
     }
 
     /// Returns all by-reference proposals that have been cached for this group.
@@ -2414,7 +2420,10 @@ impl<C: ClientConfig> Group<C> {
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
     #[cfg(not(feature = "prior_epoch"))]
-    pub(crate) async fn insert_past_epoch(&mut self) -> Result<(), MlsError> {
+    pub(crate) async fn insert_past_epoch(
+        &mut self,
+        _tolerate_epoch_gaps: bool,
+    ) -> Result<(), MlsError> {
         Ok(())
     }
 }
@@ -3709,7 +3718,7 @@ mod tests {
         let mut alice = test_group(TEST_PROTOCOL_VERSION, TEST_CIPHER_SUITE).await;
         let (mut bob, _) = alice.join("bob").await;
 
-        let res = alice
+        let (res, _) = alice
             .encrypt_application_message(b"test", vec![])
             .await
             .unwrap();
@@ -4329,7 +4338,7 @@ mod tests {
         let (bob_identity, secret_key) = get_test_signing_identity(TEST_CIPHER_SUITE, b"bob").await;
 
         let bob = TestClientBuilder::new_for_test()
-            .signing_identity(bob_identity, secret_key, TEST_CIPHER_SUITE)
+            .signing_identity(bob_identity, secret_key)
             .build();
 
         let mut new_exts = ExtensionList::new();
@@ -4686,7 +4695,7 @@ mod tests {
             assert_eq!(key_gen, i);
 
             let authn_key_gen = key_gen.to_be_bytes();
-            let msg = bob_group
+            let (msg, _) = bob_group
                 .encrypt_application_message(&authn_key_gen, vec![])
                 .await
                 .unwrap();
@@ -4708,7 +4717,7 @@ mod tests {
 
         for i in 0u32..10u32 {
             let bob_msg = i.to_be_bytes();
-            let msg = bob_group
+            let (msg, _) = bob_group
                 .encrypt_application_message(&bob_msg, vec![])
                 .await
                 .unwrap();
@@ -4739,7 +4748,7 @@ mod tests {
         assert!(alice_key_gen == key_gen);
 
         let authn_key_gen = key_gen.to_be_bytes();
-        let msg = bob_group
+        let (msg, _) = bob_group
             .encrypt_application_message(&authn_key_gen, vec![])
             .await
             .unwrap();
@@ -5055,7 +5064,8 @@ mod tests {
         let secret_key = groups[1].signer.clone();
 
         let client = TestClientBuilder::new_for_test()
-            .signing_identity(signing_identity, secret_key, TEST_CIPHER_SUITE)
+            .ciphersuite(TEST_CIPHER_SUITE)
+            .signing_identity(signing_identity, secret_key)
             .build();
 
         let kp = client
@@ -6371,7 +6381,7 @@ mod tests {
             .unwrap();
 
         // Check that carol can decrypt a message in this new group
-        let encrypted_message = alice
+        let (encrypted_message, _) = alice
             .encrypt_application_message(b"test", vec![])
             .await
             .unwrap();
@@ -6892,7 +6902,7 @@ mod tests {
         can_process_own_proposal(true).await;
     }
 
-    #[cfg(feature = "by_ref_proposal")]
+    #[cfg(all(feature = "by_ref_proposal", feature = "private_message"))]
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
     async fn can_process_own_proposal(encrypt_proposal: bool) {
         let (alice, _) = test_client_with_key_pkg_custom(
@@ -7162,9 +7172,10 @@ mod tests {
             get_test_signing_identity(TEST_CIPHER_SUITE, b"alice").await;
 
         let client = ClientBuilder::new()
+            .ciphersuite(TEST_CIPHER_SUITE)
             .crypto_provider(TestCryptoProvider::new())
             .identity_provider(BasicIdentityProvider::new())
-            .signing_identity(signing_identity, secret_key, TEST_CIPHER_SUITE)
+            .signing_identity(signing_identity, secret_key)
             .build();
 
         let mut group = client

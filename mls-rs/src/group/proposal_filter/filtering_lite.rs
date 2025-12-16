@@ -9,7 +9,7 @@ use crate::{
     protocol_version::ProtocolVersion,
     time::MlsTime,
     tree_kem::{leaf_node_validator::LeafNodeValidator, node::LeafIndex},
-    CipherSuiteProvider, ExtensionList,
+    CipherSuiteProvider, ExtensionList, MlsRules,
 };
 
 use super::filtering_common::{filter_out_invalid_psks, ApplyProposalsOutput, ProposalApplier};
@@ -42,11 +42,12 @@ use crate::group::{
 #[cfg(all(feature = "std", feature = "psk"))]
 use std::collections::HashSet;
 
-impl<C, P, CSP> ProposalApplier<'_, C, P, CSP>
+impl<C, P, CSP, Rules> ProposalApplier<'_, C, P, CSP, Rules>
 where
     C: IdentityProvider,
     P: PreSharedKeyStorage,
     CSP: CipherSuiteProvider,
+    Rules: MlsRules,
 {
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
     pub(super) async fn apply_proposals_from_member(

@@ -248,6 +248,7 @@ impl ClientBuilder<BaseSqlConfig> {
             mls_rules: DefaultMlsRules::new(),
             crypto_provider: Missing,
             signer: Default::default(),
+            ciphersuite: Default::default(),
             signing_identity: Default::default(),
             version: ProtocolVersion::MLS_10,
         })))
