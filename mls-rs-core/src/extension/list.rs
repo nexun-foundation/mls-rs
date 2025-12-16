@@ -16,7 +16,7 @@ use mls_rs_codec::{MlsDecode, MlsEncode, MlsSize};
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[derive(Debug, Clone, Default, MlsSize, MlsEncode, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct ExtensionList(Vec<Extension>);
+pub struct ExtensionList(pub Vec<Extension>);
 
 impl Deref for ExtensionList {
     type Target = Vec<Extension>;

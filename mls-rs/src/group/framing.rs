@@ -127,7 +127,7 @@ impl ApplicationData {
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(u8)]
-pub(crate) enum Content {
+pub enum Content {
     #[cfg(feature = "private_message")]
     Application(ApplicationData) = 1u8,
     #[cfg(feature = "by_ref_proposal")]
@@ -143,7 +143,12 @@ impl Content {
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-pub(crate) struct PublicMessage {
+#[cfg_attr(
+    all(feature = "ffi", not(test)),
+    ::safer_ffi_gen::ffi_type(clone, opaque)
+)]
+pub struct PublicMessage {
+    #[allow(private_interfaces)]
     pub content: FramedContent,
     pub auth: FramedContentAuthData,
     pub membership_tag: Option<MembershipTag>,
@@ -289,6 +294,10 @@ impl Debug for PrivateContentAAD {
 #[cfg(feature = "private_message")]
 #[derive(Clone, PartialEq, Eq, MlsSize, MlsEncode, MlsDecode)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
+#[cfg_attr(
+    all(feature = "ffi", not(test)),
+    ::safer_ffi_gen::ffi_type(clone, opaque)
+)]
 pub struct PrivateMessage {
     #[mls_codec(with = "mls_rs_codec::byte_vec")]
     pub group_id: Vec<u8>,
@@ -392,8 +401,8 @@ impl MlsMessage {
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 /// A MLS protocol message for sending data over the wire.
 pub struct MlsMessage {
-    pub(crate) version: ProtocolVersion,
-    pub(crate) payload: MlsMessagePayload,
+    pub version: ProtocolVersion,
+    pub payload: MlsMessagePayload,
 }
 
 #[allow(dead_code)]
@@ -403,8 +412,16 @@ impl MlsMessage {
     }
 
     #[inline(always)]
-    pub(crate) fn into_plaintext(self) -> Option<PublicMessage> {
+    pub fn into_plaintext(self) -> Option<PublicMessage> {
         match self.payload {
+            MlsMessagePayload::Plain(plaintext) => Some(plaintext),
+            _ => None,
+        }
+    }
+
+    #[inline(always)]
+    pub fn as_plaintext(&self) -> Option<&PublicMessage> {
+        match &self.payload {
             MlsMessagePayload::Plain(plaintext) => Some(plaintext),
             _ => None,
         }
@@ -412,7 +429,7 @@ impl MlsMessage {
 
     #[cfg(feature = "private_message")]
     #[inline(always)]
-    pub(crate) fn into_ciphertext(self) -> Option<PrivateMessage> {
+    pub fn into_ciphertext(self) -> Option<PrivateMessage> {
         match self.payload {
             MlsMessagePayload::Cipher(ciphertext) => Some(ciphertext),
             _ => None,
@@ -420,8 +437,16 @@ impl MlsMessage {
     }
 
     #[inline(always)]
-    pub(crate) fn into_welcome(self) -> Option<Welcome> {
+    pub fn into_welcome(self) -> Option<Welcome> {
         match self.payload {
+            MlsMessagePayload::Welcome(welcome) => Some(welcome),
+            _ => None,
+        }
+    }
+
+    #[inline(always)]
+    pub fn as_welcome(&self) -> Option<&Welcome> {
+        match &self.payload {
             MlsMessagePayload::Welcome(welcome) => Some(welcome),
             _ => None,
         }
@@ -451,6 +476,7 @@ impl MlsMessage {
         }
     }
 
+    #[inline(always)]
     pub fn as_key_package(&self) -> Option<&KeyPackage> {
         match &self.payload {
             MlsMessagePayload::KeyPackage(kp) => Some(kp),
@@ -615,7 +641,7 @@ impl MlsMessage {
 #[derive(Clone, Debug, PartialEq, MlsSize, MlsEncode, MlsDecode)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[repr(u16)]
-pub(crate) enum MlsMessagePayload {
+pub enum MlsMessagePayload {
     Plain(PublicMessage) = 1u16,
     #[cfg(feature = "private_message")]
     Cipher(PrivateMessage) = 2u16,
@@ -648,7 +674,7 @@ pub enum WireFormat {
 #[derive(Clone, PartialEq, MlsSize, MlsEncode, MlsDecode)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub(crate) struct FramedContent {
+pub struct FramedContent {
     #[mls_codec(with = "mls_rs_codec::byte_vec")]
     #[cfg_attr(feature = "serde", serde(with = "mls_rs_core::vec_serde"))]
     pub group_id: Vec<u8>,

@@ -27,9 +27,9 @@ use super::{
 };
 
 pub struct ReinitClient<C: ClientConfig + Clone> {
-    client: Client<C>,
-    reinit: ReInitProposal,
-    psk_input: PskSecretInput,
+    pub client: Client<C>,
+    pub reinit: ReInitProposal,
+    pub psk_input: PskSecretInput,
     old_public_tree: TreeKemPublic,
 }
 
@@ -71,7 +71,7 @@ where
         sub_group_id: Vec<u8>,
         new_key_packages: Vec<MlsMessage>,
         timestamp: Option<MlsTime>,
-    ) -> Result<(Group<C>, Vec<MlsMessage>), MlsError> {
+    ) -> Result<(Group<C>, CommitOutput), MlsError> {
         self.branch_group_creator(timestamp, sub_group_id)?
             .create(
                 new_key_packages,
@@ -118,7 +118,7 @@ where
             .map(Ok)
             .unwrap_or_else(|| self.current_member_signing_identity().cloned())?;
 
-        let reinit = self
+        let (_, reinit) = self
             .state
             .pending_reinit
             .ok_or(MlsError::PendingReInitNotFound)?;
@@ -131,7 +131,8 @@ where
         let client = Client::new(
             self.config,
             Some(new_signer),
-            Some((new_signing_identity, reinit.new_cipher_suite())),
+            reinit.new_cipher_suite(),
+            Some(new_signing_identity),
             reinit.new_version(),
         );
 
@@ -141,6 +142,10 @@ where
             psk_input,
             old_public_tree: self.state.public_tree,
         })
+    }
+
+    pub fn pending_reinit_sender(&self) -> Option<&Sender> {
+        self.state.pending_reinit.as_ref().map(|(sender, _)| sender)
     }
 
     fn resumption_psk_input(&self, usage: ResumptionPSKUsage) -> Result<PskSecretInput, MlsError> {
@@ -200,7 +205,7 @@ impl<C: ClientConfig + Clone> ReinitClient<C> {
         new_key_packages: Vec<MlsMessage>,
         new_leaf_node_extensions: ExtensionList,
         timestamp: Option<MlsTime>,
-    ) -> Result<(Group<C>, Vec<MlsMessage>), MlsError> {
+    ) -> Result<(Group<C>, CommitOutput), MlsError> {
         let signing_identity = self.client.signing_identity.take();
         let old_public_tree = core::mem::take(&mut self.old_public_tree);
 
@@ -208,7 +213,7 @@ impl<C: ClientConfig + Clone> ReinitClient<C> {
             .create(
                 new_key_packages,
                 // These private fields are created with `Some(x)` by `get_reinit_client`
-                signing_identity.unwrap().0,
+                signing_identity.unwrap(),
                 new_leaf_node_extensions,
                 old_public_tree.roster(),
             )
@@ -251,7 +256,7 @@ impl<C: ClientConfig> GroupCreator<C> {
         signing_identity: SigningIdentity,
         leaf_node_extensions: ExtensionList,
         old_roster: Roster<'_>,
-    ) -> Result<(Group<C>, Vec<MlsMessage>), MlsError> {
+    ) -> Result<(Group<C>, CommitOutput), MlsError> {
         // Create a new group with new parameters
         let mut group = Group::new(
             self.config,
@@ -284,7 +289,7 @@ impl<C: ClientConfig> GroupCreator<C> {
 
         check_that_subgroup_is_a_subset(old_roster, &group, self.typ).await?;
 
-        Ok((group, commit.welcome_messages))
+        Ok((group, commit))
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]

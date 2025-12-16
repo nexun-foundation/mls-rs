@@ -9,6 +9,7 @@ use super::{
     confirmation_tag::ConfirmationTag, member_from_leaf_node, proposal::ReInitProposal,
     transcript_hash::InterimTranscriptHash,
 };
+use crate::framing::Sender;
 use crate::{
     group::{GroupContext, TreeKemPublic},
     tree_kem::node::LeafIndex,
@@ -22,7 +23,7 @@ pub struct GroupState {
     pub context: GroupContext,
     pub(crate) public_tree: TreeKemPublic,
     pub(crate) interim_transcript_hash: InterimTranscriptHash,
-    pub(crate) pending_reinit: Option<ReInitProposal>,
+    pub(crate) pending_reinit: Option<(Sender, ReInitProposal)>,
     pub(crate) confirmation_tag: ConfirmationTag,
 }
 
