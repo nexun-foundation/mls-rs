@@ -8,10 +8,6 @@ pub const APPLICATION_DATA: ExtensionType = ExtensionType::new(0x0006);
 
 #[derive(Clone, Debug, Default, PartialEq, Eq, MlsEncode, MlsDecode, MlsSize)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[cfg_attr(
-    all(feature = "ffi", not(test)),
-    safer_ffi_gen::ffi_type(clone, opaque)
-)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 /// Application specific data
 ///
@@ -24,7 +20,6 @@ pub const APPLICATION_DATA: ExtensionType = ExtensionType::new(0x0006);
 /// * GI: GroupInfo objects
 /// * AD: SafeAAD objects
 /// * AE: AppEphemeral proposals
-
 pub struct ApplicationDataDictionary {
     pub component_data: Vec<ComponentData>,
 }
@@ -44,10 +39,6 @@ pub fn application_data_from_extensions(
 
 #[derive(Clone, PartialEq, Eq, MlsEncode, MlsDecode, MlsSize)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[cfg_attr(
-    all(feature = "ffi", not(test)),
-    safer_ffi_gen::ffi_type(clone, opaque)
-)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 /// A component stored under application data
 ///
