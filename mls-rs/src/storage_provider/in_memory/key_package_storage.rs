@@ -23,7 +23,6 @@ use std::sync::{Mutex, MutexGuard};
 use alloc::boxed::Box;
 #[cfg(not(feature = "std"))]
 use spin::{Mutex, MutexGuard};
-use std::collections::HashMap;
 
 use crate::map::LargeMap;
 
@@ -107,9 +106,10 @@ impl KeyPackageStorage for InMemoryKeyPackageStorage {
         Ok(())
     }
 
+    #[cfg(feature = "std")]
     async fn insert_all(
         &mut self,
-        kps: &HashMap<Vec<u8>, KeyPackageData>,
+        kps: &std::collections::HashMap<Vec<u8>, KeyPackageData>,
     ) -> Result<(), Self::Error> {
         // consider optimizing if used by another application
         for (id, pkg) in kps {

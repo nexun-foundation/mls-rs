@@ -333,7 +333,7 @@ where
                         .update_components(
                             proposal.proposal.component_id,
                             component_data.as_ref().map(|v| v.as_slice()),
-                            &update,
+                            update,
                             &self.original_tree.roster(),
                         )
                         .await

@@ -32,3 +32,4 @@ jobs:
     - name: WASM mls-rs-crypto-webcrypto
       working-directory: mls-rs-crypto-webcrypto
       run: wasm-pack test --headless --chrome --release
+      continue-on-error: true # not using it

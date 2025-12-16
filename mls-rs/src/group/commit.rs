@@ -656,11 +656,12 @@ where
                 None => self.current_user_leaf_node()?.ungreased_extensions(),
             };
 
+            let prior_provisional_state = provisional_state.clone();
+
             #[cfg(feature = "tree_index")]
-            let old_committer_leaf = provisional_state
+            let old_committer_leaf = prior_provisional_state
                 .public_tree
-                .get_leaf_node(provisional_private_tree.self_index)?
-                .clone();
+                .get_leaf_node(provisional_private_tree.self_index)?;
 
             let updated_leaf_properties =
                 if let Some(new_leaf_node_capabilities) = new_leaf_node_capabilities {
@@ -671,8 +672,6 @@ where
                 } else {
                     self.config.leaf_properties(new_leaf_node_extensions)
                 };
-
-            let prior_provisional_state = provisional_state.clone();
 
             let encap_gen = TreeKem::new(
                 &mut provisional_state.public_tree,
@@ -690,6 +689,17 @@ where
             )
             .await?;
 
+            validate_update_path(
+                &self.identity_provider(),
+                self.cipher_suite_provider(),
+                encap_gen.update_path.clone(),
+                &prior_provisional_state,
+                LeafIndex::try_from(*self.private_tree.self_index)?,
+                None,
+                &provisional_state.group_context, // unused
+            )
+            .await?;
+
             provisional_state
                 .public_tree
                 .update_committer_leaf(
@@ -697,7 +707,7 @@ where
                     &provisional_state.group_context.extensions,
                     provisional_private_tree.self_index,
                     #[cfg(feature = "tree_index")]
-                    &old_committer_leaf,
+                    old_committer_leaf,
                     #[cfg(test)]
                     !self.commit_modifiers.skip_committer_self_update_validation,
                 )
@@ -1528,9 +1538,9 @@ mod tests {
         let current_leaf_node = groups[0].current_user_leaf_node().unwrap();
         let mut capabilities = current_leaf_node.capabilities.clone();
         capabilities.credentials.push(CredentialType::new(42));
-        capabilities.extensions.push(ExtensionType::APPLICATION_ID);
+        capabilities.extensions.push(ExtensionType::new(42));
 
-        let test_ext = Extension::new(ExtensionType::APPLICATION_ID, b"1234".to_vec());
+        let test_ext = Extension::new(ExtensionType::new(42), b"1234".to_vec());
         let mut extensions = current_leaf_node.extensions.clone();
         extensions.0.push(test_ext.clone());
 
@@ -1576,9 +1586,9 @@ mod tests {
         assert!(!current_leaf_node
             .capabilities
             .extensions
-            .contains(&ExtensionType::APPLICATION_ID));
+            .contains(&ExtensionType::new(42)));
 
-        let test_ext = Extension::new(ExtensionType::APPLICATION_ID, b"1234".to_vec());
+        let test_ext = Extension::new(ExtensionType::new(42), b"1234".to_vec());
         let mut extensions = current_leaf_node.extensions.clone();
         extensions.0.push(test_ext.clone());
 
@@ -1589,7 +1599,7 @@ mod tests {
             .await;
         assert!(matches!(
             commit.unwrap_err(),
-            MlsError::ExtensionNotInCapabilities(ExtensionType::APPLICATION_ID)
+            MlsError::ExtensionNotInCapabilities(ext) if ext == ExtensionType::new(42)
         ));
     }
 

@@ -122,9 +122,8 @@ impl<C: ClientConfig> ExternalCommitBuilder<C> {
         }
     }
 
-    #[must_use]
-    #[cfg(feature = "application_data")]
     /// Add an application data update proposal
+    #[cfg(feature = "application_data")]
     pub fn with_application_data_update(
         mut self,
         data: AppDataUpdateProposal,

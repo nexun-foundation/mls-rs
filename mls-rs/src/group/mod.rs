@@ -30,7 +30,7 @@ use crate::psk::PreSharedKeyID;
 use crate::signer::Signable;
 use crate::tree_kem::hpke_encryption::HpkeEncryptable;
 use crate::tree_kem::kem::TreeKem;
-use crate::tree_kem::leaf_node::{ConfigProperties, LeafNode};
+use crate::tree_kem::leaf_node::LeafNode;
 use crate::tree_kem::leaf_node_validator::{LeafNodeValidator, ValidationContext};
 use crate::tree_kem::path_secret::PathSecret;
 pub use crate::tree_kem::Capabilities;
@@ -168,7 +168,6 @@ mod interop_test_vectors;
 
 mod exported_tree;
 
-pub use crate::tree_kem::leaf_node::LeafNode;
 pub use crate::tree_kem::node::{LeafIndex, Node, NodeIndex, NodeVec, Parent};
 pub use exported_tree::ExportedTree;
 
@@ -200,10 +199,6 @@ pub struct EncryptedGroupSecrets {
 
 #[derive(Clone, Eq, PartialEq, MlsSize, MlsEncode, MlsDecode)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[cfg_attr(
-    all(feature = "ffi", not(test)),
-    ::safer_ffi_gen::ffi_type(clone, opaque)
-)]
 pub struct Welcome {
     pub cipher_suite: CipherSuite,
     pub secrets: Vec<EncryptedGroupSecrets>,
@@ -1198,7 +1193,7 @@ where
             leaf_node_extensions.unwrap_or(new_leaf_node.ungreased_extensions());
 
         let new_properties = if let Some(leaf_node_capabilities) = leaf_node_capabilities {
-            ConfigProperties {
+            crate::tree_kem::leaf_node::ConfigProperties {
                 capabilities: leaf_node_capabilities,
                 extensions: new_leaf_node_extensions,
             }
@@ -1565,7 +1560,10 @@ where
             let (ciphertext, generation) = self.create_ciphertext(content).await?;
             (MlsMessagePayload::Cipher(ciphertext), Some(generation))
         } else {
-            (MlsMessagePayload::Plain(self.create_plaintext(content).await?), None)
+            (
+                MlsMessagePayload::Plain(self.create_plaintext(content).await?),
+                None,
+            )
         };
         #[cfg(not(feature = "private_message"))]
         let (payload, generation) = (
@@ -1573,7 +1571,10 @@ where
             None,
         );
 
-        Ok((MlsMessage::new(self.protocol_version(), payload), generation))
+        Ok((
+            MlsMessage::new(self.protocol_version(), payload),
+            generation,
+        ))
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
@@ -1642,7 +1643,9 @@ where
         .await?;
 
         let (mls_message, Some(generation)) = self.format_for_wire(auth_content).await? else {
-            return Err(MlsError::ImplementationError("Encrypting an app message should return the generation"))
+            return Err(MlsError::ImplementationError(
+                "Encrypting an app message should return the generation",
+            ));
         };
         Ok((mls_message, generation))
     }
@@ -1798,33 +1801,14 @@ where
         !self.state.proposals.is_empty()
     }
 
-<<<<<<< HEAD
     /// Returns the pending proposals waiting to be committed
-    #[cfg(feature = "by_ref_proposal")]
+    #[cfg(all(feature = "by_ref_proposal", feature = "std"))]
     pub fn pending_proposals<'g>(&'g self) -> impl Iterator<Item = &'g Proposal> + 'g {
         self.state
             .proposals
             .proposals
             .values()
             .map(|cp| &cp.proposal)
-=======
-    /// Returns all by-reference proposals that have been cached for this group.
-    ///
-    /// The returned [`CachedProposal`] values contain the proposal content,
-    /// sender, and proposal reference.
-    #[cfg(feature = "by_ref_proposal")]
-    pub fn get_cached_proposals(&self) -> Vec<CachedProposal> {
-        self.state
-            .proposals
-            .proposals
-            .iter()
-            .map(|(proposal_ref, cached)| CachedProposal {
-                proposal: cached.proposal.clone(),
-                proposal_ref: proposal_ref.clone(),
-                sender: cached.sender,
-            })
-            .collect()
->>>>>>> 191a511f (Add get_cached_proposals() method to Group and ExternalGroup (#341))
     }
 
     /// Returns all by-reference proposals that have been cached for this group.
@@ -7185,9 +7169,10 @@ mod tests {
             get_test_signing_identity(TEST_CIPHER_SUITE, b"alice").await;
 
         let client = ClientBuilder::new()
+            .ciphersuite(TEST_CIPHER_SUITE)
             .crypto_provider(TestCryptoProvider::new())
             .identity_provider(BasicIdentityProvider::new())
-            .signing_identity(signing_identity, secret_key, TEST_CIPHER_SUITE)
+            .signing_identity(signing_identity, secret_key)
             .build();
 
         let mut group = client
