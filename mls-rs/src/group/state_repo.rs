@@ -37,8 +37,8 @@ where
     pending_commit: EpochStorageCommit,
     pending_key_package_removal: Option<KeyPackageRef>,
     group_id: Vec<u8>,
-    pub(crate) storage: S,
-    pub(crate) key_package_repo: K,
+    pub storage: S,
+    pub key_package_repo: K,
 }
 
 impl<S, K> Debug for GroupStateRepository<S, K>
@@ -173,7 +173,11 @@ where
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-    pub async fn insert(&mut self, epoch: PriorEpoch, tolerate_epoch_gaps: bool) -> Result<(), MlsError> {
+    pub async fn insert(
+        &mut self,
+        epoch: PriorEpoch,
+        tolerate_epoch_gaps: bool,
+    ) -> Result<(), MlsError> {
         if epoch.group_id() != self.group_id {
             return Err(MlsError::GroupIdMismatch);
         }

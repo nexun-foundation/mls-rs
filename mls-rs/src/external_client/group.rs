@@ -1332,7 +1332,7 @@ mod tests {
         )
         .await;
 
-        let old_application_msg = alice
+        let (old_application_msg, _) = alice
             .encrypt_application_message(&[], vec![])
             .await
             .unwrap();

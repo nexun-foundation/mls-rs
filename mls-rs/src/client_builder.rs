@@ -248,6 +248,7 @@ impl ClientBuilder<BaseSqlConfig> {
             mls_rules: DefaultMlsRules::new(),
             crypto_provider: Missing,
             signer: Default::default(),
+            ciphersuite: Default::default(),
             signing_identity: Default::default(),
             version: ProtocolVersion::MLS_10,
         })))
@@ -476,10 +477,7 @@ impl<C: IntoConfig> ClientBuilder<C> {
         ClientBuilder(c)
     }
 
-    pub fn ciphersuite(
-        self,
-        cipher_suite: CipherSuite,
-    ) -> ClientBuilder<IntoConfigOutput<C>> {
+    pub fn ciphersuite(self, cipher_suite: CipherSuite) -> ClientBuilder<IntoConfigOutput<C>> {
         let mut c = self.0.into_config();
         c.0.ciphersuite = cipher_suite;
         ClientBuilder(c)
@@ -702,7 +700,7 @@ where
     fn identity_provider(&self) -> Self::IdentityProvider {
         self.identity_provider.clone()
     }
-    
+
     fn crypto_provider(&self) -> Self::CryptoProvider {
         self.crypto_provider.clone()
     }
@@ -754,7 +752,7 @@ where
     fn get(&self) -> &Self::Output {
         &self.0
     }
-    
+
     fn get_mut(&mut self) -> &mut Self::Output {
         &mut self.0
     }
@@ -769,7 +767,7 @@ pub trait MlsConfig: Clone + Send + Sync + Sealed {
 
     #[doc(hidden)]
     fn get(&self) -> &Self::Output;
-    
+
     #[doc(hidden)]
     fn get_mut(&mut self) -> &mut Self::Output;
 }
@@ -814,7 +812,7 @@ impl<T: MlsConfig> ClientConfig for T {
     fn identity_provider(&self) -> Self::IdentityProvider {
         self.get().identity_provider()
     }
-    
+
     fn crypto_provider(&self) -> Self::CryptoProvider {
         self.get().crypto_provider()
     }

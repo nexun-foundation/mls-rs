@@ -354,22 +354,54 @@ impl ProposalBundle {
     }
 
     /// Iterate over the proposals in the order specified by the RFC in https://www.rfc-editor.org/rfc/rfc9420.html#section-12.3
-    pub fn iter_proposals_for_applying(&self) -> impl Iterator<Item=ProposalInfo<BorrowedProposal<'_>>> {
-        let add = self.additions.iter().map(|p| p.as_ref().map(BorrowedProposal::Add));
-        let remove = self.removals.iter().map(|p| p.as_ref().map(BorrowedProposal::Remove));
-        let reinit = self.reinitializations.iter().map(|p| p.as_ref().map(BorrowedProposal::ReInit));
+    pub fn iter_proposals_for_applying(
+        &self,
+    ) -> impl Iterator<Item = ProposalInfo<BorrowedProposal<'_>>> {
+        let add = self
+            .additions
+            .iter()
+            .map(|p| p.as_ref().map(BorrowedProposal::Add));
+        let remove = self
+            .removals
+            .iter()
+            .map(|p| p.as_ref().map(BorrowedProposal::Remove));
+        let reinit = self
+            .reinitializations
+            .iter()
+            .map(|p| p.as_ref().map(BorrowedProposal::ReInit));
         #[cfg(feature = "by_ref_proposal")]
-        let update = self.updates.iter().map(|p| p.as_ref().map(BorrowedProposal::Update));
+        let update = self
+            .updates
+            .iter()
+            .map(|p| p.as_ref().map(BorrowedProposal::Update));
         #[cfg(feature = "psk")]
-        let psk = self.psks.iter().map(|p| p.as_ref().map(BorrowedProposal::Psk));
-        let ext_init = self.external_initializations.iter().map(|p| p.as_ref().map(BorrowedProposal::ExternalInit));
-        let gce = self.group_context_extensions.iter().map(|p| p.as_ref().map(BorrowedProposal::GroupContextExtensions));
+        let psk = self
+            .psks
+            .iter()
+            .map(|p| p.as_ref().map(BorrowedProposal::Psk));
+        let ext_init = self
+            .external_initializations
+            .iter()
+            .map(|p| p.as_ref().map(BorrowedProposal::ExternalInit));
+        let gce = self
+            .group_context_extensions
+            .iter()
+            .map(|p| p.as_ref().map(BorrowedProposal::GroupContextExtensions));
         #[cfg(feature = "application_data")]
-        let adu = self.app_data_update_proposals.iter().map(|p| p.as_ref().map(BorrowedProposal::AppDataUpdate));
+        let adu = self
+            .app_data_update_proposals
+            .iter()
+            .map(|p| p.as_ref().map(BorrowedProposal::AppDataUpdate));
         #[cfg(feature = "application_data")]
-        let ae = self.app_ephemeral_proposals.iter().map(|p| p.as_ref().map(BorrowedProposal::AppEphemeral));
+        let ae = self
+            .app_ephemeral_proposals
+            .iter()
+            .map(|p| p.as_ref().map(BorrowedProposal::AppEphemeral));
         #[cfg(feature = "custom_proposal")]
-        let custom = self.custom_proposals.iter().map(|p| p.as_ref().map(BorrowedProposal::Custom));
+        let custom = self
+            .custom_proposals
+            .iter()
+            .map(|p| p.as_ref().map(BorrowedProposal::Custom));
 
         let res = gce;
         #[cfg(feature = "by_ref_proposal")]
@@ -424,19 +456,19 @@ impl ProposalBundle {
                 .map(|p| p.map(Proposal::SelfRemove)),
         );
 
-        let res = res.chain(
-            self.additions
-                .into_iter()
-                .map(|p| p.map(|p| Proposal::Add(alloc::boxed::Box::new(p)))),
-        )
-        .chain(self.removals.into_iter().map(|p| p.map(Proposal::Remove)))
-        .chain(
-            self.reinitializations
-                .into_iter()
-                .map(|p| p.map(Proposal::ReInit)),
-        )
-        .chain(group_context_extensions_to_chain);
-       
+        let res = res
+            .chain(
+                self.additions
+                    .into_iter()
+                    .map(|p| p.map(|p| Proposal::Add(alloc::boxed::Box::new(p)))),
+            )
+            .chain(self.removals.into_iter().map(|p| p.map(Proposal::Remove)))
+            .chain(
+                self.reinitializations
+                    .into_iter()
+                    .map(|p| p.map(Proposal::ReInit)),
+            )
+            .chain(group_context_extensions_to_chain);
 
         #[cfg(feature = "application_data")]
         let res = res
@@ -519,7 +551,7 @@ impl ProposalBundle {
     pub fn self_remove_proposals(&self) -> &[ProposalInfo<SelfRemoveProposal>] {
         &self.self_removes
     }
-    
+
     #[cfg(feature = "application_data")]
     pub fn app_data_update_proposals(
         &self,

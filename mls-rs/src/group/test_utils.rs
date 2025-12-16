@@ -61,7 +61,10 @@ impl TestGroup {
     #[cfg(feature = "by_ref_proposal")]
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
     pub(crate) async fn update_proposal(&mut self) -> Proposal {
-        self.group.update_proposal(None, None, None, None).await.unwrap()
+        self.group
+            .update_proposal(None, None, None, None)
+            .await
+            .unwrap()
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
@@ -453,7 +456,10 @@ impl GroupWithoutKeySchedule {
 }
 
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-#[cfg_attr(all(target_arch = "wasm32", mls_build_async), maybe_async::must_be_async)]
+#[cfg_attr(
+    all(target_arch = "wasm32", mls_build_async),
+    maybe_async::must_be_async
+)]
 #[cfg_attr(
     all(not(target_arch = "wasm32"), mls_build_async),
     maybe_async::must_be_async

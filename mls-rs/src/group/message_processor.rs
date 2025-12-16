@@ -2,14 +2,14 @@
 // Copyright by contributors to this project.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+#[cfg(feature = "application_data")]
+use super::application_data::ComponentId;
 #[cfg(all(
     feature = "by_ref_proposal",
     feature = "custom_proposal",
     feature = "self_remove_proposal"
 ))]
 use super::SelfRemoveProposal;
-#[cfg(feature = "application_data")]
-use super::application_data::ComponentId;
 use super::{
     commit_sender,
     confirmation_tag::ConfirmationTag,
@@ -793,22 +793,23 @@ pub(crate) trait MessageProcessor: Send + Sync {
             None => None,
         };
 
-        let commit_effect =
-            if let Some(reinit) = provisional_state.applied_proposals.reinitializations.pop() {
-                self.group_state_mut().pending_reinit = Some((reinit.sender, reinit.proposal.clone()));
-                CommitEffect::ReInit(reinit)
-            } else if let Some(remove_proposal) = self_removed {
-                // since we are removed, this is the last version of the ratchet tree we're ever gonna see
-                self.group_state_mut().public_tree = provisional_state.public_tree.clone();
-                let new_epoch = NewEpoch::new(self.group_state().clone(), &provisional_state);
-                CommitEffect::Removed {
-                    remover: remove_proposal.sender,
-                    new_epoch: Box::new(new_epoch),
-                }
-            } else {
-                let new_epoch = NewEpoch::new(self.group_state().clone(), &provisional_state);
-                CommitEffect::NewEpoch(Box::new(new_epoch))
-            };
+        let commit_effect = if let Some(reinit) =
+            provisional_state.applied_proposals.reinitializations.pop()
+        {
+            self.group_state_mut().pending_reinit = Some((reinit.sender, reinit.proposal.clone()));
+            CommitEffect::ReInit(reinit)
+        } else if let Some(remove_proposal) = self_removed {
+            // since we are removed, this is the last version of the ratchet tree we're ever gonna see
+            self.group_state_mut().public_tree = provisional_state.public_tree.clone();
+            let new_epoch = NewEpoch::new(self.group_state().clone(), &provisional_state);
+            CommitEffect::Removed {
+                remover: remove_proposal.sender,
+                new_epoch: Box::new(new_epoch),
+            }
+        } else {
+            let new_epoch = NewEpoch::new(self.group_state().clone(), &provisional_state);
+            CommitEffect::NewEpoch(Box::new(new_epoch))
+        };
 
         #[cfg(all(
             feature = "by_ref_proposal",

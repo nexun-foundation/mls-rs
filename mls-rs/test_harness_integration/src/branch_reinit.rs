@@ -163,7 +163,7 @@ pub(crate) mod inner {
                 mls_rules.ratchet_tree_extension = !external_tree;
             };
 
-            let (new_group, welcome) = if let Some(id) = subgroup_id {
+            let (new_group, commit_output) = if let Some(id) = subgroup_id {
                 group.branch(id, new_key_pkgs, None).map_err(abort)?
             } else {
                 let client = group
@@ -179,7 +179,8 @@ pub(crate) mod inner {
                     .map_err(abort)?
             };
 
-            let welcome = welcome
+            let welcome = commit_output
+                .welcome_messages
                 .first()
                 .map(|msg| msg.to_bytes())
                 .transpose()

@@ -9,11 +9,11 @@ use super::{
     confirmation_tag::ConfirmationTag, member_from_leaf_node, proposal::ReInitProposal,
     transcript_hash::InterimTranscriptHash,
 };
+use crate::framing::Sender;
 use crate::{
     group::{GroupContext, TreeKemPublic},
     tree_kem::node::LeafIndex,
 };
-use crate::framing::Sender;
 
 #[derive(Clone, Debug, PartialEq, MlsSize, MlsEncode, MlsDecode)]
 #[non_exhaustive]

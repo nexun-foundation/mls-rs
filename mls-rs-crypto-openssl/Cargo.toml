@@ -13,6 +13,7 @@ x509 = ["mls-rs-identity-x509"]
 default = ["x509"]
 
 [dependencies]
+# in order to have more reproduciple interop tests. There seems to be an issue with the openssl version distributed by homebrew on macos. If it's the case turn on the "vendored" feature of openssl
 openssl = { version = "0.10.40" }
 mls-rs-core = { path = "../mls-rs-core", version = "0.26.0" }
 mls-rs-identity-x509 = { path = "../mls-rs-identity-x509", optional = true, version = "0.20.0" }

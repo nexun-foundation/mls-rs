@@ -82,7 +82,7 @@ pub fn create_fuzz_commit_message(
         authenticated_data,
     )?;
 
-    group.format_for_wire(auth_content)
+    Ok(group.format_for_wire(auth_content)?.0)
 }
 
 fn make_client(cipher_suite: CipherSuite, name: &str) -> Client<TestClientConfig> {
@@ -92,7 +92,8 @@ fn make_client(cipher_suite: CipherSuite, name: &str) -> Client<TestClientConfig
     Client::builder()
         .identity_provider(BasicIdentityProvider)
         .crypto_provider(MlsCryptoProvider::default())
-        .signing_identity(signing_identity, secret, cipher_suite)
+        .signing_identity(signing_identity, secret)
+        .ciphersuite(cipher_suite)
         .build()
 }
 

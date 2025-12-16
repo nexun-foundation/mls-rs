@@ -143,7 +143,6 @@ impl Content {
 
 #[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[cfg_attr(all(feature = "ffi", not(test)), ::safer_ffi_gen::ffi_type(clone, opaque))]
 pub struct PublicMessage {
     #[allow(private_interfaces)]
     pub content: FramedContent,
@@ -156,9 +155,9 @@ impl MlsSize for PublicMessage {
         self.content.mls_encoded_len()
             + self.auth.mls_encoded_len()
             + self
-            .membership_tag
-            .as_ref()
-            .map_or(0, |tag| tag.mls_encoded_len())
+                .membership_tag
+                .as_ref()
+                .map_or(0, |tag| tag.mls_encoded_len())
     }
 }
 
@@ -291,7 +290,6 @@ impl Debug for PrivateContentAAD {
 #[cfg(feature = "private_message")]
 #[derive(Clone, PartialEq, Eq, MlsSize, MlsEncode, MlsDecode)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
-#[cfg_attr(all(feature = "ffi", not(test)), ::safer_ffi_gen::ffi_type(clone, opaque))]
 pub struct PrivateMessage {
     #[mls_codec(with = "mls_rs_codec::byte_vec")]
     pub group_id: Vec<u8>,

@@ -40,8 +40,7 @@ impl<'a> ExportedTree<'a> {
             public_tree: &self.0,
         }
     }
-    
-    #[cfg_attr(all(feature = "ffi", not(test)), safer_ffi_gen::safer_ffi_gen_ignore)]
+
     pub fn members_iter(&'a self) -> impl Iterator<Item = Member> + 'a {
         self.0
             .non_empty_leaves()

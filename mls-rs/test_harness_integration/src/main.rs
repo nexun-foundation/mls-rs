@@ -183,6 +183,16 @@ impl MlsRules for TestMlsRules {
     ) -> Result<EncryptionOptions, Self::Error> {
         Ok(*self.encryption_options.lock().unwrap())
     }
+
+    /*fn update_components(
+        &self,
+        _component_id: mls_rs::group::ComponentId,
+        _component_data: Option<&[u8]>,
+        _update: &[u8],
+        _roster: &Roster,
+    ) -> Result<Vec<u8>, Self::Error> {
+        unreachable!()
+    }*/
 }
 
 #[tonic::async_trait]
@@ -414,7 +424,7 @@ impl MlsClient for MlsClientImpl {
             .as_mut()
             .ok_or_else(|| Status::aborted("no group with such index."))?
             .encrypt_application_message(&request.plaintext, request.authenticated_data)
-            .and_then(|m| m.to_bytes())
+            .and_then(|(m, _)| m.to_bytes())
             .map_err(abort)?;
 
         Ok(Response::new(ProtectResponse { ciphertext }))
@@ -829,6 +839,7 @@ async fn create_client(cipher_suite: u16, identity: &[u8]) -> Result<ClientDetai
         .psk_store(psk_store.clone())
         .key_package_repo(key_package_repo.clone())
         .signing_identity(signing_identity.clone(), secret_key.clone())
+        .ciphersuite(cipher_suite)
         .build();
 
     Ok(ClientDetails {

@@ -210,11 +210,12 @@ impl<'a, C: IdentityProvider, CP: CipherSuiteProvider> LeafNodeValidator<'a, C, 
         self.validate_required_capabilities(leaf_node)?;
 
         // If there are extensions, make sure they are referenced in the capabilities field
-        for one_ext in &*leaf_node.extensions {
-            if !one_ext.extension_type.is_default() && !leaf_node
-                .capabilities
-                .extensions
-                .contains(&one_ext.extension_type)
+        for one_ext in &*leaf_node.ungreased_extensions() {
+            if !one_ext.extension_type.is_default()
+                && !leaf_node
+                    .capabilities
+                    .extensions
+                    .contains(&one_ext.extension_type)
             {
                 return Err(MlsError::ExtensionNotInCapabilities(one_ext.extension_type));
             }

@@ -13,11 +13,11 @@ use crate::{
 #[cfg(feature = "application_data")]
 use super::application_data::ComponentId;
 
+use super::GroupContext;
+use crate::LeafNode;
 use alloc::boxed::Box;
 use core::convert::Infallible;
-use mls_rs_core::{error::IntoAnyError};
-use crate::LeafNode;
-use super::GroupContext;
+use mls_rs_core::error::IntoAnyError;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum CommitDirection {
