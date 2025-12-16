@@ -24,15 +24,8 @@ use super::{
     ResumptionPSKUsage, ResumptionPsk,
 };
 use crate::framing::Sender;
-use crate::time::MlsTime;
-use crate::{client::MlsError, Client, Group, MlsMessage};
-
-struct ResumptionGroupParameters<'a> {
-    group_id: &'a [u8],
-    cipher_suite: CipherSuite,
-    version: ProtocolVersion,
-    extensions: &'a ExtensionList,
-}
+use crate::{client::MlsError, tree_kem::TreeKemPublic, Client, Group, MlsMessage};
+use crate::{group::Roster, time::MlsTime};
 
 pub struct ReinitClient<C: ClientConfig + Clone> {
     pub client: Client<C>,

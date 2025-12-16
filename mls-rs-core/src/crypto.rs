@@ -123,7 +123,10 @@ impl AsRef<[u8]> for HpkeSecretKey {
 ///
 /// This trait corresponds to ContextS from RFC 9180.
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-#[cfg_attr(all(target_arch = "wasm32", mls_build_async), maybe_async::must_be_async)]
+#[cfg_attr(
+    all(target_arch = "wasm32", mls_build_async),
+    maybe_async::must_be_async
+)]
 #[cfg_attr(
     all(not(target_arch = "wasm32"), mls_build_async),
     maybe_async::must_be_async
@@ -148,7 +151,10 @@ pub trait HpkeContextS {
 ///
 /// This trait corresponds to ContextR from RFC 9180.
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-#[cfg_attr(all(target_arch = "wasm32", mls_build_async), maybe_async::must_be_async)]
+#[cfg_attr(
+    all(target_arch = "wasm32", mls_build_async),
+    maybe_async::must_be_async
+)]
 #[cfg_attr(
     all(not(target_arch = "wasm32"), mls_build_async),
     maybe_async::must_be_async
@@ -296,7 +302,10 @@ pub trait CryptoProvider: Send + Sync {
 
 /// Provides all cryptographic operations required by MLS for a given cipher suite.
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-#[cfg_attr(all(target_arch = "wasm32", mls_build_async), maybe_async::must_be_async)]
+#[cfg_attr(
+    all(target_arch = "wasm32", mls_build_async),
+    maybe_async::must_be_async
+)]
 #[cfg_attr(
     all(not(target_arch = "wasm32"), mls_build_async),
     maybe_async::must_be_async

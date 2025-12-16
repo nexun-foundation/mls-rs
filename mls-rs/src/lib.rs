@@ -162,7 +162,6 @@ pub use mls_rs_core::{
     identity::IdentityProvider,
     key_package::KeyPackageStorage,
     psk::PreSharedKeyStorage,
-
 };
 
 /// Dependencies of [`MlsRules`].

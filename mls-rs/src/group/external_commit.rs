@@ -38,11 +38,11 @@ use alloc::vec::Vec;
 #[cfg(feature = "psk")]
 use mls_rs_core::psk::{ExternalPskId, PreSharedKey};
 
+use super::{validate_tree_and_info_joiner, ExportedTree};
 #[cfg(feature = "psk")]
 use crate::group::{
     PreSharedKeyProposal, {JustPreSharedKeyID, PreSharedKeyID},
 };
-use super::{validate_tree_and_info_joiner, ExportedTree};
 
 /// A builder that aids with the construction of an external commit.
 pub struct ExternalCommitBuilder<C: ClientConfig> {
@@ -115,10 +115,12 @@ impl<C: ClientConfig> ExternalCommitBuilder<C> {
         }
     }
 
-    #[must_use]
-    #[cfg(feature = "application_data")]
     /// Add an application data update proposal
-    pub fn with_application_data_update(mut self, data: AppDataUpdateProposal) -> Result<Self, MlsError> {
+    #[cfg(feature = "application_data")]
+    pub fn with_application_data_update(
+        mut self,
+        data: AppDataUpdateProposal,
+    ) -> Result<Self, MlsError> {
         use crate::group::proposal::AppDataUpdateOperation;
         // A proposal list is invalid if it includes multiple AppDataUpdate proposals that remove
         // state for the same component_id, or proposals that both update and remove state for
@@ -127,31 +129,49 @@ impl<C: ClientConfig> ExternalCommitBuilder<C> {
         // (a) a single remove operation or
         // (b) one or more update operation.
         match data {
-            AppDataUpdateProposal { op: AppDataUpdateOperation::Remove, .. } => {
+            AppDataUpdateProposal {
+                op: AppDataUpdateOperation::Remove,
+                ..
+            } => {
                 // there can be a single remove for a given component
-                if self.application_data_update.iter().any(|adu| adu.component_id == data.component_id) {
-                    return Err(MlsError::InvalidApplicationDataProposal)
+                if self
+                    .application_data_update
+                    .iter()
+                    .any(|adu| adu.component_id == data.component_id)
+                {
+                    return Err(MlsError::InvalidApplicationDataProposal);
                 }
                 if !self.application_data_update.insert(data) {
-                    return Err(MlsError::InvalidApplicationDataProposal)
-                }
-            },
-            AppDataUpdateProposal { op: AppDataUpdateOperation::Update(_), component_id } => {
-                // there can be a single remove for a given component
-                if self.application_data_update.iter()
-                    .filter(|adu| matches!(adu.op, AppDataUpdateOperation::Remove))
-                    .any(|adu| adu.component_id == data.component_id) {
-                    return Err(MlsError::InvalidApplicationDataProposal)
-                }
-
-                if self.application_data_update.iter().any(|adu| adu.component_id == component_id && adu.op == AppDataUpdateOperation::Remove) {
-                    return Err(MlsError::InvalidApplicationDataProposal)
-                }
-                if !self.application_data_update.insert(data) {
-                    return Err(MlsError::InvalidApplicationDataProposal)
+                    return Err(MlsError::InvalidApplicationDataProposal);
                 }
             }
-            AppDataUpdateProposal { op: AppDataUpdateOperation::Invalid, .. } => return Err(MlsError::InvalidApplicationDataProposal),
+            AppDataUpdateProposal {
+                op: AppDataUpdateOperation::Update(_),
+                component_id,
+            } => {
+                // there can be a single remove for a given component
+                if self
+                    .application_data_update
+                    .iter()
+                    .filter(|adu| matches!(adu.op, AppDataUpdateOperation::Remove))
+                    .any(|adu| adu.component_id == data.component_id)
+                {
+                    return Err(MlsError::InvalidApplicationDataProposal);
+                }
+
+                if self.application_data_update.iter().any(|adu| {
+                    adu.component_id == component_id && adu.op == AppDataUpdateOperation::Remove
+                }) {
+                    return Err(MlsError::InvalidApplicationDataProposal);
+                }
+                if !self.application_data_update.insert(data) {
+                    return Err(MlsError::InvalidApplicationDataProposal);
+                }
+            }
+            AppDataUpdateProposal {
+                op: AppDataUpdateOperation::Invalid,
+                ..
+            } => return Err(MlsError::InvalidApplicationDataProposal),
         }
         Ok(self)
     }

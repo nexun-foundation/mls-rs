@@ -44,11 +44,8 @@ impl<'a> Roster<'a> {
             .map(|(index, node)| member_from_leaf_node(node, index))
     }
 
-    #[cfg_attr(all(feature = "ffi", not(test)), safer_ffi_gen::safer_ffi_gen_ignore)]
     pub fn leaf_nodes_iter(&self) -> impl Iterator<Item = &LeafNode> {
-        self.public_tree
-            .leaves()
-            .filter_map(|node| node)
+        self.public_tree.leaves().flatten()
     }
 
     /// The current set of group members. This function makes a clone of

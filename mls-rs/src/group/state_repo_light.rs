@@ -22,8 +22,8 @@ where
     K: KeyPackageStorage,
 {
     pending_key_package_removal: Option<KeyPackageRef>,
-    storage: S,
-    key_package_repo: K,
+    pub storage: S,
+    pub key_package_repo: K,
 }
 
 impl<S, K> GroupStateRepository<S, K>
@@ -45,12 +45,13 @@ where
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-    pub async fn write_to_storage(&mut self, group_snapshot: Snapshot) -> Result<(), MlsError> {
+    pub async fn write_to_storage(&mut self, group_snapshot: Snapshot) -> Result<usize, MlsError> {
         let group_state = GroupState {
             data: group_snapshot.mls_encode_to_vec()?.into(),
             id: group_snapshot.state.context.group_id,
         };
 
+        let bytes = group_state.data.len();
         self.storage
             .write(group_state, Vec::new(), Vec::new())
             .await
@@ -63,7 +64,7 @@ where
                 .map_err(|e| MlsError::KeyPackageRepoError(e.into_any_error()))?;
         }
 
-        Ok(())
+        Ok(bytes)
     }
 }
 

@@ -33,8 +33,8 @@ use mls_rs_core::identity::IdentityProvider;
 
 use super::PendingCommit;
 
-pub(crate) use legacy::LegacyPendingCommit;
 use crate::framing::Sender;
+pub(crate) use legacy::LegacyPendingCommit;
 
 #[derive(Debug, PartialEq, Clone, MlsEncode, MlsDecode, MlsSize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
