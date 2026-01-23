@@ -115,16 +115,7 @@ impl TreeKemPublic {
 
         #[cfg(not(feature = "tree_index"))]
         for (leaf_index, leaf) in tree.nodes.non_empty_leaves() {
-            index_insert(
-                &tree.nodes,
-                leaf,
-                leaf_index,
-                identity_provider,
-                extensions,
-                #[cfg(test)]
-                true,
-            )
-            .await?;
+            index_insert(&tree.nodes, leaf, leaf_index, identity_provider, extensions).await?;
         }
 
         Ok(tree)

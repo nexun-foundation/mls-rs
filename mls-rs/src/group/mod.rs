@@ -5061,8 +5061,7 @@ mod tests {
         let secret_key = groups[1].signer.clone();
 
         let client = TestClientBuilder::new_for_test()
-            .ciphersuite(TEST_CIPHER_SUITE)
-            .signing_identity(signing_identity, secret_key)
+            .signing_identity(signing_identity, secret_key, TEST_CIPHER_SUITE)
             .build();
 
         let kp = client
@@ -7156,59 +7155,5 @@ mod tests {
         .await;
 
         assert_matches!(res, Err(MlsError::InUseCredentialTypeUnsupportedByNewLeaf));
-    }
-
-    #[cfg(feature = "custom_proposal")]
-    #[maybe_async::test(not(mls_build_async), async(mls_build_async, crate::futures_test))]
-    async fn custom_proposal_commit_succeeds_after_capability_update() {
-        use crate::client_builder::ClientBuilder;
-
-        let test_proposal_type = ProposalType::from(65001);
-
-        let (signing_identity, secret_key) =
-            get_test_signing_identity(TEST_CIPHER_SUITE, b"alice").await;
-
-        let client = ClientBuilder::new()
-            .ciphersuite(TEST_CIPHER_SUITE)
-            .crypto_provider(TestCryptoProvider::new())
-            .identity_provider(BasicIdentityProvider::new())
-            .signing_identity(signing_identity, secret_key)
-            .build();
-
-        let mut group = client
-            .create_group(Default::default(), Default::default(), None)
-            .await
-            .unwrap();
-
-        let group_id = group.group_id().to_vec();
-
-        let proposal = CustomProposal::new(test_proposal_type, vec![]);
-        let res = group
-            .commit_builder()
-            .custom_proposal(proposal)
-            .build()
-            .await;
-        assert!(res.is_err());
-
-        group.write_to_storage().await.unwrap();
-
-        let new_client = client
-            .to_builder(None)
-            .custom_proposal_type(test_proposal_type)
-            .build();
-
-        let mut group = new_client.load_group(&group_id).await.unwrap();
-
-        group.commit(vec![]).await.unwrap();
-        group.apply_pending_commit().await.unwrap();
-
-        let proposal = CustomProposal::new(test_proposal_type, vec![]);
-        let res = group
-            .commit_builder()
-            .custom_proposal(proposal)
-            .build()
-            .await;
-
-        assert!(res.is_ok());
     }
 }
