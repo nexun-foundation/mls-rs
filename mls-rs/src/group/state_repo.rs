@@ -209,7 +209,7 @@ where
                     e.mls_encode_to_vec()?.into(),
                 ))
             })
-            .collect::<Result<Vec<_>, MlsError>>()?;
+            .collect::<Result<_, MlsError>>()?;
 
         let updates = self
             .pending_commit
@@ -221,7 +221,7 @@ where
                     e.mls_encode_to_vec()?.into(),
                 ))
             })
-            .collect::<Result<Vec<_>, MlsError>>()?;
+            .collect::<Result<_, MlsError>>()?;
 
         let group_state = GroupState {
             data: group_snapshot.mls_encode_to_vec()?.into(),
