@@ -8,16 +8,14 @@ use crate::error::IntoAnyError;
 #[cfg(mls_build_async)]
 use alloc::boxed::Box;
 use alloc::vec::Vec;
+use zeroize::Zeroizing;
 
 /// Generic representation of a group's state.
 #[derive(Clone, PartialEq, Eq)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct GroupState {
     /// A unique group identifier.
-    #[cfg_attr(feature = "serde", serde(with = "crate::vec_serde"))]
     pub id: Vec<u8>,
-    #[cfg_attr(feature = "serde", serde(with = "crate::vec_serde"))]
-    pub data: Vec<u8>,
+    pub data: Zeroizing<Vec<u8>>,
 }
 
 impl Debug for GroupState {
@@ -33,7 +31,7 @@ impl Debug for GroupState {
 pub struct EpochRecord {
     /// A unique epoch identifier within a particular group.
     pub id: u64,
-    pub data: Vec<u8>,
+    pub data: Zeroizing<Vec<u8>>,
 }
 
 impl Debug for EpochRecord {
@@ -43,7 +41,7 @@ impl Debug for EpochRecord {
 }
 
 impl EpochRecord {
-    pub fn new(id: u64, data: Vec<u8>) -> Self {
+    pub fn new(id: u64, data: Zeroizing<Vec<u8>>) -> Self {
         Self { id, data }
     }
 }
@@ -69,10 +67,14 @@ pub trait GroupStateStorage: Send + Sync {
     type Error: IntoAnyError;
 
     /// Fetch a group state from storage.
-    async fn state(&self, group_id: &[u8]) -> Result<Option<Vec<u8>>, Self::Error>;
+    async fn state(&self, group_id: &[u8]) -> Result<Option<Zeroizing<Vec<u8>>>, Self::Error>;
 
     /// Lazy load cached epoch data from a particular group.
-    async fn epoch(&self, group_id: &[u8], epoch_id: u64) -> Result<Option<Vec<u8>>, Self::Error>;
+    async fn epoch(
+        &self,
+        group_id: &[u8],
+        epoch_id: u64,
+    ) -> Result<Option<Zeroizing<Vec<u8>>>, Self::Error>;
 
     /// Write pending state updates.
     ///

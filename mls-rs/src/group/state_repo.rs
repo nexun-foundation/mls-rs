@@ -130,7 +130,7 @@ where
             .epoch(&psk_id.psk_group_id.0, psk_id.psk_epoch)
             .await
             .map_err(|e| MlsError::GroupStorageError(e.into_any_error()))?
-            .map(|e| Ok(PriorEpoch::mls_decode(&mut &*e)?.secrets.resumption_secret))
+            .map(|e| Ok(PriorEpoch::mls_decode(&mut &**e)?.secrets.resumption_secret))
             .transpose()
     }
 
@@ -160,7 +160,7 @@ where
                 .await
                 .map_err(|e| MlsError::GroupStorageError(e.into_any_error()))?
                 .and_then(|epoch| {
-                    PriorEpoch::mls_decode(&mut &*epoch)
+                    PriorEpoch::mls_decode(&mut &**epoch)
                         .map(|epoch| {
                             self.pending_commit.updates.push(epoch);
                             self.pending_commit.updates.last_mut()
@@ -199,18 +199,28 @@ where
             .pending_commit
             .inserts
             .iter()
-            .map(|e| Ok(EpochRecord::new(e.epoch_id(), e.mls_encode_to_vec()?)))
+            .map(|e| {
+                Ok(EpochRecord::new(
+                    e.epoch_id(),
+                    e.mls_encode_to_vec()?.into(),
+                ))
+            })
             .collect::<Result<Vec<_>, MlsError>>()?;
 
         let updates = self
             .pending_commit
             .updates
             .iter()
-            .map(|e| Ok(EpochRecord::new(e.epoch_id(), e.mls_encode_to_vec()?)))
+            .map(|e| {
+                Ok(EpochRecord::new(
+                    e.epoch_id(),
+                    e.mls_encode_to_vec()?.into(),
+                ))
+            })
             .collect::<Result<Vec<_>, MlsError>>()?;
 
         let group_state = GroupState {
-            data: group_snapshot.mls_encode_to_vec()?,
+            data: group_snapshot.mls_encode_to_vec()?.into(),
             id: group_snapshot.state.context.group_id,
         };
 
@@ -345,7 +355,7 @@ mod tests {
 
         let stored = storage.get(TEST_GROUP).unwrap();
 
-        assert_eq!(stored.state_data, snapshot.mls_encode_to_vec().unwrap());
+        assert_eq!(*stored.state_data, snapshot.mls_encode_to_vec().unwrap());
 
         assert_eq!(stored.epoch_data.len(), 1);
 
@@ -353,7 +363,7 @@ mod tests {
             stored.epoch_data.back().unwrap(),
             &EpochRecord::new(
                 test_epoch.epoch_id(),
-                test_epoch.mls_encode_to_vec().unwrap()
+                test_epoch.mls_encode_to_vec().unwrap().into()
             )
         );
     }
@@ -413,13 +423,16 @@ mod tests {
 
         let stored = storage.get(TEST_GROUP).unwrap();
 
-        assert_eq!(stored.state_data, snapshot.mls_encode_to_vec().unwrap());
+        assert_eq!(*stored.state_data, snapshot.mls_encode_to_vec().unwrap());
 
         assert_eq!(stored.epoch_data.len(), 1);
 
         assert_eq!(
             stored.epoch_data.back().unwrap(),
-            &EpochRecord::new(to_update.epoch_id(), to_update.mls_encode_to_vec().unwrap())
+            &EpochRecord::new(
+                to_update.epoch_id(),
+                to_update.mls_encode_to_vec().unwrap().into()
+            )
         );
     }
 
@@ -467,14 +480,17 @@ mod tests {
 
         assert_eq!(
             stored.epoch_data.front().unwrap(),
-            &EpochRecord::new(to_update.epoch_id(), to_update.mls_encode_to_vec().unwrap())
+            &EpochRecord::new(
+                to_update.epoch_id(),
+                to_update.mls_encode_to_vec().unwrap().into()
+            )
         );
 
         assert_eq!(
             stored.epoch_data.back().unwrap(),
             &EpochRecord::new(
                 test_epoch_1.epoch_id(),
-                test_epoch_1.mls_encode_to_vec().unwrap()
+                test_epoch_1.mls_encode_to_vec().unwrap().into()
             )
         );
     }
