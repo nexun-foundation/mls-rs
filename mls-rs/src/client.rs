@@ -372,8 +372,6 @@ pub enum MlsError {
     DefaultValueListed,
     #[cfg_attr(feature = "std", error("not a subgroup"))]
     NotASubgroup,
-    #[cfg_attr(feature = "std", error("{0}"))]
-    ImplementationError(&'static str),
 }
 
 impl IntoAnyError for MlsError {
