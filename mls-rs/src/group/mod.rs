@@ -3958,7 +3958,7 @@ mod tests {
         let (bob_identity, secret_key) = get_test_signing_identity(TEST_CIPHER_SUITE, b"bob").await;
 
         let bob = TestClientBuilder::new_for_test()
-            .signing_identity(bob_identity, secret_key)
+            .signing_identity(bob_identity, secret_key, TEST_CIPHER_SUITE)
             .build();
 
         let mut new_exts = ExtensionList::new();
