@@ -23,7 +23,14 @@ pub(crate) fn member_from_leaf_node(leaf_node: &LeafNode, leaf_index: LeafIndex)
 )]
 #[derive(Clone, Debug)]
 pub struct Roster<'a> {
-    pub(crate) public_tree: &'a NodeVec,
+    pub public_tree: &'a NodeVec,
+}
+
+impl<'a> Roster<'a> {
+    /// Retrieve the leaf node with given `index` within the group in time `O(1)`.
+    pub fn leaf_node_at_index(&self, index: u32) -> Result<&LeafNode, MlsError> {
+        self.public_tree.borrow_as_leaf(LeafIndex::try_from(index)?)
+    }
 }
 
 #[cfg_attr(all(feature = "ffi", not(test)), safer_ffi_gen::safer_ffi_gen)]
