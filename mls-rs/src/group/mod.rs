@@ -1565,10 +1565,7 @@ where
             let (ciphertext, generation) = self.create_ciphertext(content).await?;
             (MlsMessagePayload::Cipher(ciphertext), Some(generation))
         } else {
-            (
-                MlsMessagePayload::Plain(self.create_plaintext(content).await?),
-                None,
-            )
+            (MlsMessagePayload::Plain(self.create_plaintext(content).await?), None)
         };
         #[cfg(not(feature = "private_message"))]
         let (payload, generation) = (
@@ -1576,10 +1573,7 @@ where
             None,
         );
 
-        Ok((
-            MlsMessage::new(self.protocol_version(), payload),
-            generation,
-        ))
+        Ok((MlsMessage::new(self.protocol_version(), payload), generation))
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
@@ -1648,9 +1642,7 @@ where
         .await?;
 
         let (mls_message, Some(generation)) = self.format_for_wire(auth_content).await? else {
-            return Err(MlsError::ImplementationError(
-                "Encrypting an app message should return the generation",
-            ));
+            return Err(MlsError::ImplementationError("Encrypting an app message should return the generation"))
         };
         Ok((mls_message, generation))
     }

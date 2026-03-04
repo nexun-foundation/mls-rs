@@ -80,7 +80,10 @@ pub enum MlsError {
     #[cfg_attr(feature = "std", error("message from self can't be processed"))]
     CantProcessMessageFromSelf,
     #[cfg_attr(feature = "std", error("message from self can't be processed"))]
-    CantProcessAppMessageFromSelf { epoch: u64, generation: u32 },
+    CantProcessAppMessageFromSelf {
+        epoch: u64,
+        generation: u32,
+    },
     #[cfg_attr(
         feature = "std",
         error("pending proposals found, commit required before application messages can be sent")
@@ -373,6 +376,8 @@ pub enum MlsError {
     DefaultValueListed,
     #[cfg_attr(feature = "std", error("not a subgroup"))]
     NotASubgroup,
+    #[cfg_attr(feature = "std", error("{0}"))]
+    ImplementationError(&'static str),
 }
 
 impl IntoAnyError for MlsError {
