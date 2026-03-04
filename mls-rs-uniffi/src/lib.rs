@@ -733,7 +733,7 @@ impl Group {
     /// [`Group::process_incoming_message`].
     pub async fn encrypt_application_message(&self, message: &[u8]) -> Result<Message, Error> {
         let mut group = self.inner().await;
-        let mls_message = group
+        let (mls_message, _) = group
             .encrypt_application_message(message, Vec::new())
             .await?;
         Ok(mls_message.into())

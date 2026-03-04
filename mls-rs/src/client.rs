@@ -78,6 +78,11 @@ pub enum MlsError {
     LeafNotFound(u32),
     #[cfg_attr(feature = "std", error("message from self can't be processed"))]
     CantProcessMessageFromSelf,
+    #[cfg_attr(feature = "std", error("message from self can't be processed"))]
+    CantProcessAppMessageFromSelf {
+        epoch: u64,
+        generation: u32,
+    },
     #[cfg_attr(
         feature = "std",
         error("pending proposals found, commit required before application messages can be sent")
@@ -368,6 +373,8 @@ pub enum MlsError {
     RcAeadError,
     #[cfg_attr(feature = "std", error("Default value listed"))]
     DefaultValueListed,
+    #[cfg_attr(feature = "std", error("{0}"))]
+    ImplementationError(&'static str),
 }
 
 impl IntoAnyError for MlsError {

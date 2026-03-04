@@ -824,7 +824,7 @@ where
             ProposalMessageDescription::new(&self.cipher_suite_provider, &auth_content, proposal)
                 .await?;
 
-        let message = self.format_for_wire(auth_content).await?;
+        let (message, _) = self.format_for_wire(auth_content).await?;
 
         self.state
             .proposals
@@ -1408,17 +1408,18 @@ where
     pub(crate) async fn format_for_wire(
         &mut self,
         content: AuthenticatedContent,
-    ) -> Result<MlsMessage, MlsError> {
+    ) -> Result<(MlsMessage, Option<u32>), MlsError> {
         #[cfg(feature = "private_message")]
-        let payload = if content.wire_format == WireFormat::PrivateMessage {
-            MlsMessagePayload::Cipher(self.create_ciphertext(content).await?)
+        let (payload, generation) = if content.wire_format == WireFormat::PrivateMessage {
+            let (ciphertext, generation) = self.create_ciphertext(content).await?;
+            (MlsMessagePayload::Cipher(ciphertext), Some(generation))
         } else {
-            MlsMessagePayload::Plain(self.create_plaintext(content).await?)
+            (MlsMessagePayload::Plain(self.create_plaintext(content).await?), None)
         };
         #[cfg(not(feature = "private_message"))]
         let payload = MlsMessagePayload::Plain(self.create_plaintext(content).await?);
 
-        Ok(MlsMessage::new(self.protocol_version(), payload))
+        Ok((MlsMessage::new(self.protocol_version(), payload), generation))
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
@@ -1449,7 +1450,7 @@ where
     async fn create_ciphertext(
         &mut self,
         auth_content: AuthenticatedContent,
-    ) -> Result<PrivateMessage, MlsError> {
+    ) -> Result<(PrivateMessage, u32), MlsError> {
         let padding_mode = self.encryption_options()?.padding_mode;
 
         let mut encryptor = CiphertextProcessor::new(self, self.cipher_suite_provider.clone());
@@ -1467,7 +1468,7 @@ where
         &mut self,
         message: &[u8],
         authenticated_data: Vec<u8>,
-    ) -> Result<MlsMessage, MlsError> {
+    ) -> Result<(MlsMessage, u32), MlsError> {
         // A group member that has observed one or more proposals within an epoch MUST send a Commit message
         // before sending application data
         #[cfg(feature = "by_ref_proposal")]
@@ -1486,7 +1487,10 @@ where
         )
         .await?;
 
-        self.format_for_wire(auth_content).await
+        let (mls_message, Some(generation)) = self.format_for_wire(auth_content).await? else {
+            return Err(MlsError::ImplementationError("Encrypting an app message should return the generation"))
+        };
+        Ok((mls_message, generation))
     }
 
     #[cfg(feature = "private_message")]
@@ -3979,7 +3983,7 @@ mod tests {
 
         let bob_msg = b"I'm Bob";
 
-        let msg = bob_group
+        let (msg, _) = bob_group
             .encrypt_application_message(bob_msg, vec![])
             .await
             .unwrap();
@@ -4140,7 +4144,7 @@ mod tests {
         let mut alice_group = test_group(TEST_PROTOCOL_VERSION, TEST_CIPHER_SUITE).await;
         let (mut bob_group, _) = alice_group.join("bob").await;
 
-        let message = alice_group
+        let (message, _) = alice_group
             .encrypt_application_message(b"foobar", Vec::new())
             .await
             .unwrap();
