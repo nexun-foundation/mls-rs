@@ -202,10 +202,7 @@ where
         let sender_data = self.open_sender_data(ciphertext).await?;
 
         if self.group_state.self_index() == sender_data.sender {
-            return Err(MlsError::CantProcessAppMessageFromSelf {
-                epoch: self.group_state.group_context().epoch(),
-                generation: sender_data.generation,
-            });
+            return Err(MlsError::CantProcessAppMessageFromSelf { epoch: self.group_state.group_context().epoch(), generation: sender_data.generation });
         }
 
         // Grab a decryption key from the message epoch's key schedule
