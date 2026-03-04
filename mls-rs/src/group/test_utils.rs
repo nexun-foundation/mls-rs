@@ -162,7 +162,7 @@ impl TestGroup {
         .await
         .unwrap();
 
-        self.format_for_wire(auth_content).await.unwrap()
+        self.format_for_wire(auth_content).await.unwrap().0
     }
 }
 

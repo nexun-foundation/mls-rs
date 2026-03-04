@@ -857,7 +857,7 @@ mod tests {
 
         group.apply_pending_commit().await.unwrap();
 
-        let message = group
+        let (message, _) = group
             .encrypt_application_message(b"123", vec![])
             .await
             .unwrap();

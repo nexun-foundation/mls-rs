@@ -951,7 +951,7 @@ where
                     .collect()
             };
 
-        let commit_message = self.format_for_wire(auth_content.clone()).await?;
+        let (commit_message, _) = self.format_for_wire(auth_content.clone()).await?;
 
         // TODO is it necessary to clone the tree here? or can we just output serialized bytes?
         let ratchet_tree = (!commit_options.ratchet_tree_extension
