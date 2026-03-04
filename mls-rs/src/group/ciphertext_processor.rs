@@ -100,7 +100,7 @@ where
         &mut self,
         auth_content: AuthenticatedContent,
         padding: PaddingMode,
-    ) -> Result<PrivateMessage, MlsError> {
+    ) -> Result<(PrivateMessage, u32), MlsError> {
         if Sender::Member(*self.group_state.self_index()) != auth_content.content.sender {
             return Err(MlsError::InvalidSender);
         }
@@ -181,14 +181,15 @@ where
 
         let encrypted_sender_data = sender_data_key.seal(&sender_data, &sender_data_aad).await?;
 
-        Ok(PrivateMessage {
+        let private_message = PrivateMessage {
             group_id: self.group_state.group_context().group_id.clone(),
             epoch: self.group_state.group_context().epoch,
             content_type,
             authenticated_data,
             encrypted_sender_data,
             ciphertext,
-        })
+        };
+        Ok((private_message, generation))
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
@@ -201,7 +202,7 @@ where
         let sender_data = self.open_sender_data(ciphertext).await?;
 
         if self.group_state.self_index() == sender_data.sender {
-            return Err(MlsError::CantProcessMessageFromSelf);
+            return Err(MlsError::CantProcessAppMessageFromSelf { epoch: self.group_state.group_context().epoch(), generation: sender_data.generation });
         }
 
         // Grab a decryption key from the message epoch's key schedule
@@ -340,7 +341,7 @@ mod test {
 
                 let mut ciphertext_processor = test_processor(&mut test_data.group, cipher_suite);
 
-                let ciphertext = ciphertext_processor
+                let (ciphertext, _) = ciphertext_processor
                     .seal(test_data.content.clone(), padding)
                     .await
                     .unwrap();
@@ -367,7 +368,7 @@ mod test {
                 // Sender's LeafIndex is 0.
                 let mut test_data = test_data(cipher_suite).await;
                 let mut ciphertext_processor = test_processor(&mut test_data.group, cipher_suite);
-                let ciphertext = ciphertext_processor
+                let (ciphertext, _) = ciphertext_processor
                     .seal(test_data.content.clone(), padding)
                     .await
                     .unwrap();
@@ -394,19 +395,19 @@ mod test {
         let mut test_data = test_data(TEST_CIPHER_SUITE).await;
         let mut ciphertext_processor = test_processor(&mut test_data.group, TEST_CIPHER_SUITE);
 
-        let ciphertext_step = ciphertext_processor
+        let (ciphertext_step, _) = ciphertext_processor
             .seal(test_data.content.clone(), PaddingMode::StepFunction)
             .await
             .unwrap();
 
-        let ciphertext_no_pad = ciphertext_processor
+        let (ciphertext_no_pad, _) = ciphertext_processor
             .seal(test_data.content.clone(), PaddingMode::None)
             .await
             .unwrap();
 
         assert!(ciphertext_step.ciphertext.len() > ciphertext_no_pad.ciphertext.len());
 
-        let ciphertext_padme = ciphertext_processor
+        let (ciphertext_padme, _) = ciphertext_processor
             .seal(test_data.content.clone(), PaddingMode::Padme)
             .await
             .unwrap();
@@ -434,7 +435,7 @@ mod test {
 
         let mut ciphertext_processor = test_processor(&mut test_data.group, TEST_CIPHER_SUITE);
 
-        let ciphertext = ciphertext_processor
+        let (ciphertext, _) = ciphertext_processor
             .seal(test_data.content, PaddingMode::None)
             .await
             .unwrap();
@@ -455,7 +456,7 @@ mod test {
             PaddingMode::StepFunction,
             PaddingMode::Padme,
         ] {
-            let mut ciphertext = ciphertext_processor
+            let (mut ciphertext, _) = ciphertext_processor
                 .seal(test_data.content.clone(), padding)
                 .await
                 .unwrap();
