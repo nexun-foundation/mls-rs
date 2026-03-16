@@ -17,10 +17,6 @@ pub(crate) fn member_from_leaf_node(leaf_node: &LeafNode, leaf_index: LeafIndex)
     )
 }
 
-#[cfg_attr(
-    all(feature = "ffi", not(test)),
-    safer_ffi_gen::ffi_type(clone, opaque)
-)]
 #[derive(Clone, Debug)]
 pub struct Roster<'a> {
     pub public_tree: &'a NodeVec,
@@ -33,7 +29,6 @@ impl<'a> Roster<'a> {
     }
 }
 
-#[cfg_attr(all(feature = "ffi", not(test)), safer_ffi_gen::safer_ffi_gen)]
 impl<'a> Roster<'a> {
     /// Iterator over the current roster that lazily copies data out of the
     /// internal group state.
@@ -43,7 +38,6 @@ impl<'a> Roster<'a> {
     /// The indexes within this iterator do not correlate with indexes of users
     /// within [`ReceivedMessage`] content descriptions due to the layout of
     /// member information within a MLS group state.
-    #[cfg_attr(all(feature = "ffi", not(test)), safer_ffi_gen::safer_ffi_gen_ignore)]
     pub fn members_iter(&self) -> impl Iterator<Item = Member> + 'a {
         self.public_tree
             .non_empty_leaves()
@@ -87,7 +81,6 @@ impl<'a> Roster<'a> {
     /// The indexes within this iterator do not correlate with indexes of users
     /// within [`ReceivedMessage`] content descriptions due to the layout of
     /// member information within a MLS group state.
-    #[cfg_attr(all(feature = "ffi", not(test)), safer_ffi_gen::safer_ffi_gen_ignore)]
     pub fn member_identities_iter(&self) -> impl Iterator<Item = &SigningIdentity> + '_ {
         self.public_tree
             .non_empty_leaves()
