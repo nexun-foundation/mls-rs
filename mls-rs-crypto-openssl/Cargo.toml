@@ -15,10 +15,10 @@ default = ["x509"]
 [dependencies]
 # in order to have more reproduciple interop tests. There seems to be an issue with the openssl version distributed by homebrew on macos. If it's the case turn on the "vendored" feature of openssl
 openssl = { version = "0.10.40" }
-mls-rs-core = { path = "../mls-rs-core", version = "0.27.0" }
-mls-rs-identity-x509 = { path = "../mls-rs-identity-x509", optional = true, version = "0.21.0" }
-mls-rs-crypto-hpke = { path = "../mls-rs-crypto-hpke", version = "0.21.0" }
-mls-rs-crypto-traits = { path = "../mls-rs-crypto-traits", version = "0.22.0" }
+mls-rs-core = { path = "../mls-rs-core", version = "0.25.0" }
+mls-rs-identity-x509 = { path = "../mls-rs-identity-x509", optional = true, version = "0.19.0" }
+mls-rs-crypto-hpke = { path = "../mls-rs-crypto-hpke", version = "0.19.0" }
+mls-rs-crypto-traits = { path = "../mls-rs-crypto-traits", version = "0.20.0" }
 thiserror = "2"
 zeroize = { version = "1", features = ["zeroize_derive"] }
 maybe-async = "0.2.10"
