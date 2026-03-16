@@ -952,7 +952,7 @@ where
         self.signer.as_ref().ok_or(MlsError::SignerNotFound)
     }
 
-    pub fn signing_identity(&self) -> Result<&SigningIdentity, MlsError> {
+    pub fn signing_identity(&self) -> Result<(&SigningIdentity, CipherSuite), MlsError> {
         self.signing_identity
             .as_ref()
             .ok_or(MlsError::SignerNotFound)
