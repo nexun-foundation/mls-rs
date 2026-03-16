@@ -51,10 +51,6 @@ impl From<&Content> for ContentType {
     }
 }
 
-#[cfg_attr(
-    all(feature = "ffi", not(test)),
-    safer_ffi_gen::ffi_type(clone, opaque)
-)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, MlsSize, MlsEncode, MlsDecode)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
@@ -396,10 +392,6 @@ impl MlsMessage {
 }
 
 #[derive(Clone, Debug, PartialEq, MlsSize, MlsEncode, MlsDecode)]
-#[cfg_attr(
-    all(feature = "ffi", not(test)),
-    ::safer_ffi_gen::ffi_type(clone, opaque)
-)]
 #[cfg_attr(feature = "arbitrary", derive(arbitrary::Arbitrary))]
 /// A MLS protocol message for sending data over the wire.
 pub struct MlsMessage {
@@ -407,7 +399,6 @@ pub struct MlsMessage {
     pub payload: MlsMessagePayload,
 }
 
-#[cfg_attr(all(feature = "ffi", not(test)), ::safer_ffi_gen::safer_ffi_gen)]
 #[allow(dead_code)]
 impl MlsMessage {
     pub(crate) fn new(version: ProtocolVersion, payload: MlsMessagePayload) -> MlsMessage {
@@ -503,7 +494,6 @@ impl MlsMessage {
     ///
     /// Returns `None` if the message is [`WireFormat::KeyPackage`]
     /// or [`WireFormat::Welcome`]
-    #[cfg_attr(all(feature = "ffi", not(test)), ::safer_ffi_gen::safer_ffi_gen_ignore)]
     pub fn epoch(&self) -> Option<u64> {
         match &self.payload {
             MlsMessagePayload::Plain(p) => Some(p.content.epoch),
@@ -514,7 +504,6 @@ impl MlsMessage {
         }
     }
 
-    #[cfg_attr(all(feature = "ffi", not(test)), ::safer_ffi_gen::safer_ffi_gen_ignore)]
     pub fn cipher_suite(&self) -> Option<CipherSuite> {
         match &self.payload {
             MlsMessagePayload::GroupInfo(i) => Some(i.group_context.cipher_suite),
@@ -561,7 +550,6 @@ impl MlsMessage {
     /// If this is a plaintext commit message, return all proposals committed by value.
     /// If this is not a plaintext or not a commit, this returns an empty list.
     /// **Note**: This method is not available in FFI bindings due to Proposal type constraints.
-    #[cfg_attr(all(feature = "ffi", not(test)), ::safer_ffi_gen::safer_ffi_gen_ignore)]
     #[allow(unreachable_patterns)]
     pub fn proposals_by_value(&self) -> Vec<&Proposal> {
         match &self.payload {
@@ -662,7 +650,6 @@ impl From<PublicMessage> for MlsMessagePayload {
     }
 }
 
-#[cfg_attr(all(feature = "ffi", not(test)), safer_ffi_gen::ffi_type)]
 #[derive(
     Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd, MlsSize, MlsEncode, MlsDecode,
 )]
