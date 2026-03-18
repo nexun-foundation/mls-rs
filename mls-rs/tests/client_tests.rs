@@ -32,7 +32,6 @@ use mls_rs::{
 use mls_rs::{CipherSuite, Group};
 use mls_rs::{Client, CryptoProvider};
 use mls_rs_core::crypto::CipherSuiteProvider;
-use mls_rs_core::identity::BasicCredential;
 use rand::prelude::IndexedMutRandom;
 use rand::RngCore;
 
