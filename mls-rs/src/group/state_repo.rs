@@ -194,7 +194,7 @@ where
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-    pub async fn write_to_storage(&mut self, group_snapshot: Snapshot) -> Result<usize, MlsError> {
+    pub async fn write_to_storage(&mut self, mut group_snapshot: Snapshot) -> Result<usize, MlsError> {
         let inserts = self
             .pending_commit
             .inserts
@@ -208,6 +208,13 @@ where
             .iter()
             .map(|e| Ok(EpochRecord::new(e.epoch_id(), e.mls_encode_to_vec()?)))
             .collect::<Result<Vec<_>, MlsError>>()?;
+
+        let rt = std::mem::take(&mut group_snapshot.state.public_tree.nodes);
+        let rt = if rt == Default::default() {
+            None
+        } else {
+            Some(rt)
+        };
 
         let group_state = GroupState {
             data: group_snapshot.mls_encode_to_vec()?,
@@ -230,8 +237,10 @@ where
             .saturating_add(inserts.iter().map(|e| e.data.len()).sum::<usize>())
             .saturating_add(updates.iter().map(|e| e.data.len()).sum::<usize>());
 
+        let rt = rt.map(|r| r.mls_encode_to_vec()).transpose()?;
+        
         self.storage
-            .write(group_state, inserts, updates)
+            .write(group_state, inserts, updates, rt)
             .await
             .map_err(|e| MlsError::GroupStorageError(e.into_any_error()))?;
 

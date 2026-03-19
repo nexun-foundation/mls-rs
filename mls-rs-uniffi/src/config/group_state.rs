@@ -49,6 +49,7 @@ pub trait GroupStateStorage: Send + Sync + Debug {
         group_state: Vec<u8>,
         epoch_inserts: Vec<EpochRecord>,
         epoch_updates: Vec<EpochRecord>,
+        ratchet_tree: Option<Vec<u8>>,
     ) -> Result<(), Error>;
 
     async fn max_epoch_id(&self, group_id: Vec<u8>) -> Result<Option<u64>, Error>;
@@ -107,6 +108,7 @@ where
         data: Vec<u8>,
         epoch_inserts: Vec<EpochRecord>,
         epoch_updates: Vec<EpochRecord>,
+        ratchet_tree: Option<Vec<u8>>,
     ) -> Result<(), Error> {
         self.inner()
             .await
@@ -114,6 +116,7 @@ where
                 mls_rs_core::group::GroupState { id, data },
                 epoch_inserts.into_iter().map(Into::into).collect(),
                 epoch_updates.into_iter().map(Into::into).collect(),
+                ratchet_tree,
             )
             .await
             .map_err(|err| err.into_any_error().into())

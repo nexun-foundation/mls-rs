@@ -35,6 +35,7 @@ pub(crate) const DEFAULT_EPOCH_RETENTION_LIMIT: usize = 3;
 pub(crate) struct InMemoryGroupData {
     pub(crate) state_data: Vec<u8>,
     pub(crate) epoch_data: VecDeque<EpochRecord>,
+    pub(crate) rt: Vec<u8>,
 }
 
 impl Debug for InMemoryGroupData {
@@ -50,10 +51,11 @@ impl Debug for InMemoryGroupData {
 }
 
 impl InMemoryGroupData {
-    pub fn new(state_data: Vec<u8>) -> InMemoryGroupData {
+    pub fn new(state_data: Vec<u8>, rt: Vec<u8>) -> InMemoryGroupData {
         InMemoryGroupData {
             state_data,
             epoch_data: Default::default(),
+            rt,
         }
     }
 
@@ -198,6 +200,7 @@ impl GroupStateStorage for InMemoryGroupStateStorage {
         state: GroupState,
         epoch_inserts: Vec<EpochRecord>,
         epoch_updates: Vec<EpochRecord>,
+        ratchet_tree: Option<Vec<u8>>,
     ) -> Result<(), Self::Error> {
         let mut group_map = self.lock();
 
@@ -205,9 +208,12 @@ impl GroupStateStorage for InMemoryGroupStateStorage {
             LargeMapEntry::Occupied(entry) => {
                 let data = entry.into_mut();
                 data.state_data = state.data;
+                if let Some(rt) = ratchet_tree {
+                    data.rt = rt;
+                }
                 data
             }
-            LargeMapEntry::Vacant(entry) => entry.insert(InMemoryGroupData::new(state.data)),
+            LargeMapEntry::Vacant(entry) => entry.insert(InMemoryGroupData::new(state.data, ratchet_tree.expect("RatchetTree should be supplied when room created"))),
         };
 
         epoch_inserts
@@ -267,7 +273,7 @@ mod tests {
         let epoch_inserts = vec![test_epoch(0), test_epoch(1)];
 
         storage
-            .write(test_snapshot(0), epoch_inserts, Vec::new())
+            .write(test_snapshot(0), epoch_inserts, Vec::new(), Some(vec![]))
             .await
             .unwrap();
 
@@ -278,7 +284,7 @@ mod tests {
         let epoch_inserts = vec![test_epoch(3), test_epoch(4)];
 
         storage
-            .write(test_snapshot(1), epoch_inserts, Vec::new())
+            .write(test_snapshot(1), epoch_inserts, Vec::new(), Some(vec![]))
             .await
             .unwrap();
 
@@ -292,7 +298,7 @@ mod tests {
         let epoch_inserts = vec![test_epoch(0), test_epoch(1), test_epoch(3), test_epoch(4)];
 
         storage
-            .write(test_snapshot(1), epoch_inserts, Vec::new())
+            .write(test_snapshot(1), epoch_inserts, Vec::new(), Some(vec![]))
             .await
             .unwrap();
 
@@ -303,7 +309,7 @@ mod tests {
         let epoch_inserts = vec![test_epoch(5)];
 
         storage
-            .write(test_snapshot(1), epoch_inserts, Vec::new())
+            .write(test_snapshot(1), epoch_inserts, Vec::new(), Some(vec![]))
             .await
             .unwrap();
 
@@ -331,7 +337,7 @@ mod tests {
         let snapshot = test_snapshot(1);
 
         storage
-            .write(snapshot.clone(), epoch_inserts.clone(), updates)
+            .write(snapshot.clone(), epoch_inserts.clone(), updates, Some(vec![]))
             .await
             .unwrap();
 

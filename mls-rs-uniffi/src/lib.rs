@@ -798,6 +798,7 @@ mod tests {
         struct GroupStateData {
             state: Vec<u8>,
             epoch_data: Vec<EpochRecord>,
+            ratchet_tree: Vec<u8>,
         }
 
         #[derive(Debug)]
@@ -842,11 +843,15 @@ mod tests {
                 group_state: Vec<u8>,
                 epoch_inserts: Vec<EpochRecord>,
                 epoch_updates: Vec<EpochRecord>,
+                ratchet_tree: Option<Vec<u8>>
             ) -> Result<(), Error> {
                 let mut groups = self.lock();
 
                 let group = groups.entry(group_id).or_default();
                 group.state = group_state;
+                if let Some(rt) = ratchet_tree {
+                    group.ratchet_tree = rt;
+                }
                 for insert in epoch_inserts {
                     group.epoch_data.push(insert);
                 }

@@ -40,6 +40,7 @@ impl mls_rs_core::group::GroupStateStorage for ClientGroupStorage {
         state: mls_rs_core::group::GroupState,
         inserts: Vec<mls_rs_core::group::EpochRecord>,
         updates: Vec<mls_rs_core::group::EpochRecord>,
+        ratchet_tree: Option<Vec<u8>>,
     ) -> Result<(), Self::Error> {
         self.0
             .write(
@@ -47,6 +48,7 @@ impl mls_rs_core::group::GroupStateStorage for ClientGroupStorage {
                 state.data,
                 inserts.into_iter().map(Into::into).collect(),
                 updates.into_iter().map(Into::into).collect(),
+                ratchet_tree
             )
             .await
     }

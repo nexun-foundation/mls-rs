@@ -98,6 +98,7 @@ pub trait GroupStateStorage: Send + Sync {
         state: GroupState,
         epoch_inserts: Vec<EpochRecord>,
         epoch_updates: Vec<EpochRecord>,
+        ratchet_tree: Option<Vec<u8>>,
     ) -> Result<(), Self::Error>;
 
     /// The [`EpochRecord::id`] value that is associated with a stored

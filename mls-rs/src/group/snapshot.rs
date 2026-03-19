@@ -363,7 +363,7 @@ mod tests {
         };
 
         storage
-            .write(group_state, Default::default(), Default::default())
+            .write(group_state, Default::default(), Default::default(), Some(vec![]))
             .await
             .unwrap();
 
