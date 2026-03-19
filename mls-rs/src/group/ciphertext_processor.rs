@@ -442,7 +442,7 @@ mod test {
 
         let res = ciphertext_processor.open(&ciphertext).await;
 
-        assert_matches!(res, Err(MlsError::CantProcessMessageFromSelf))
+        assert_matches!(res, Err(MlsError::CantProcessAppMessageFromSelf { .. }))
     }
 
     #[maybe_async::test(not(mls_build_async), async(mls_build_async, crate::futures_test))]
