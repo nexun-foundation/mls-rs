@@ -66,7 +66,7 @@ fn main() -> Result<(), MlsError> {
     let (mut bob_group, _) = bob.join_group(None, &alice_commit.welcome_messages[0], None)?;
 
     // Alice encrypts an application message to Bob.
-    let msg = alice_group.encrypt_application_message(b"hello world", Default::default())?;
+    let (msg, _) = alice_group.encrypt_application_message(b"hello world", Default::default())?;
 
     // Bob decrypts the application message from Alice.
     let msg = bob_group.process_incoming_message(msg)?;
