@@ -658,22 +658,11 @@ where
                 None => self.current_user_leaf_node()?.ungreased_extensions(),
             };
 
-            let prior_provisional_state = provisional_state.clone();
-
             #[cfg(feature = "tree_index")]
-            let old_committer_leaf = prior_provisional_state
+            let old_committer_leaf = provisional_state
                 .public_tree
-                .get_leaf_node(provisional_private_tree.self_index)?;
-
-            let updated_leaf_properties =
-                if let Some(new_leaf_node_capabilities) = new_leaf_node_capabilities {
-                    ConfigProperties {
-                        capabilities: new_leaf_node_capabilities,
-                        extensions: new_leaf_node_extensions,
-                    }
-                } else {
-                    self.config.leaf_properties(new_leaf_node_extensions)
-                };
+                .get_leaf_node(provisional_private_tree.self_index)?
+                .clone();
 
             let encap_gen = TreeKem::new(
                 &mut provisional_state.public_tree,
@@ -691,17 +680,6 @@ where
             )
             .await?;
 
-            validate_update_path(
-                &self.identity_provider(),
-                self.cipher_suite_provider(),
-                encap_gen.update_path.clone(),
-                &prior_provisional_state,
-                LeafIndex::try_from(*self.private_tree.self_index)?,
-                None,
-                &provisional_state.group_context, // unused
-            )
-            .await?;
-
             provisional_state
                 .public_tree
                 .update_committer_leaf(
@@ -709,22 +687,11 @@ where
                     &provisional_state.group_context.extensions,
                     provisional_private_tree.self_index,
                     #[cfg(feature = "tree_index")]
-                    old_committer_leaf,
+                    &old_committer_leaf,
                     #[cfg(test)]
                     !self.commit_modifiers.skip_committer_self_update_validation,
                 )
                 .await?;
-
-            validate_update_path(
-                &self.identity_provider(),
-                self.cipher_suite_provider(),
-                encap_gen.update_path.clone(),
-                &prior_provisional_state,
-                LeafIndex::try_from(*self.private_tree.self_index)?,
-                None,
-                &provisional_state.group_context, // unused
-            )
-            .await?;
 
             (
                 Some(encap_gen.update_path),
