@@ -658,6 +658,12 @@ where
                 None => self.current_user_leaf_node()?.ungreased_extensions(),
             };
 
+            #[cfg(feature = "tree_index")]
+            let old_committer_leaf = provisional_state
+                .public_tree
+                .get_leaf_node(provisional_private_tree.self_index)?
+                .clone();
+
             let updated_leaf_properties =
                 if let Some(new_leaf_node_capabilities) = new_leaf_node_capabilities {
                     ConfigProperties {
@@ -685,6 +691,19 @@ where
                 &self.commit_modifiers,
             )
             .await?;
+
+            provisional_state
+                .public_tree
+                .update_committer_leaf(
+                    &self.config.identity_provider(),
+                    &provisional_state.group_context.extensions,
+                    provisional_private_tree.self_index,
+                    #[cfg(feature = "tree_index")]
+                    &old_committer_leaf,
+                    #[cfg(test)]
+                    !self.commit_modifiers.skip_committer_self_update_validation,
+                )
+                .await?;
 
             validate_update_path(
                 &self.identity_provider(),
@@ -1053,6 +1072,7 @@ pub(crate) mod test_utils {
         pub modify_leaf: fn(&mut LeafNode, &SignatureSecretKey) -> Option<SignatureSecretKey>,
         pub modify_tree: fn(&mut TreeKemPublic),
         pub modify_path: fn(Vec<UpdatePathNode>) -> Vec<UpdatePathNode>,
+        pub skip_committer_self_update_validation: bool,
     }
 
     impl Default for CommitModifiers {
@@ -1061,6 +1081,7 @@ pub(crate) mod test_utils {
                 modify_leaf: |_, _| None,
                 modify_tree: |_| (),
                 modify_path: |a| a,
+                skip_committer_self_update_validation: false,
             }
         }
     }
@@ -1953,5 +1974,30 @@ mod tests {
         assert!(group.pending_commit.is_none());
         group.apply_detached_commit(secrets).await.unwrap();
         assert_eq!(group.context().epoch, 1);
+    }
+
+    #[cfg(feature = "tree_index")]
+    #[maybe_async::test(not(mls_build_async), async(mls_build_async, crate::futures_test))]
+    async fn tree_index_consistent_after_committer_self_update() {
+        use crate::identity::basic::BasicIdentityProvider;
+        use crate::tree_kem::TreeKemPublic;
+
+        let mut group = test_group(TEST_PROTOCOL_VERSION, TEST_CIPHER_SUITE).await;
+
+        group.commit(vec![]).await.unwrap();
+        group.process_pending_commit().await.unwrap();
+
+        let mut rebuilt = TreeKemPublic::import_node_data(
+            group.state.public_tree.nodes.clone(),
+            &BasicIdentityProvider,
+            &Default::default(),
+        )
+        .await
+        .unwrap();
+
+        let cs = test_cipher_suite_provider(TEST_CIPHER_SUITE);
+        rebuilt.tree_hash(&cs).await.unwrap();
+
+        assert!(group.state.public_tree.equal_internals(&rebuilt));
     }
 }
