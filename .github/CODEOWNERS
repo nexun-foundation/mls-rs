@@ -1,5 +1,1 @@
-# This CODEOWNERS file is in a fork.
-# - A PR on the main branch of mls-rs will use the main branch CODEOWNERS.
-# - A PR on the nexun branch (the fork main branch) will use this branch (nexun) CODEOWNERS.
-*  @awslabs/mls-rs-dev
-*  @toubabcava @jean-sol-patre @Orphe0s10
+* @awslabs/mls-rs-dev
