@@ -1798,6 +1798,7 @@ where
         !self.state.proposals.is_empty()
     }
 
+<<<<<<< HEAD
     /// Returns the pending proposals waiting to be committed
     #[cfg(feature = "by_ref_proposal")]
     pub fn pending_proposals<'g>(&'g self) -> impl Iterator<Item = &'g Proposal> + 'g {
@@ -1806,6 +1807,24 @@ where
             .proposals
             .values()
             .map(|cp| &cp.proposal)
+=======
+    /// Returns all by-reference proposals that have been cached for this group.
+    ///
+    /// The returned [`CachedProposal`] values contain the proposal content,
+    /// sender, and proposal reference.
+    #[cfg(feature = "by_ref_proposal")]
+    pub fn get_cached_proposals(&self) -> Vec<CachedProposal> {
+        self.state
+            .proposals
+            .proposals
+            .iter()
+            .map(|(proposal_ref, cached)| CachedProposal {
+                proposal: cached.proposal.clone(),
+                proposal_ref: proposal_ref.clone(),
+                sender: cached.sender,
+            })
+            .collect()
+>>>>>>> 191a511f (Add get_cached_proposals() method to Group and ExternalGroup (#341))
     }
 
     /// Returns all by-reference proposals that have been cached for this group.
