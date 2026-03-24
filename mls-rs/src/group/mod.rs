@@ -1638,16 +1638,6 @@ where
         !self.state.proposals.is_empty()
     }
 
-    /// Returns the pending proposals waiting to be committed
-    #[cfg(all(feature = "by_ref_proposal", feature = "std"))]
-    pub fn pending_proposals<'g>(&'g self) -> impl Iterator<Item = &'g Proposal> + 'g {
-        self.state
-            .proposals
-            .proposals
-            .values()
-            .map(|cp| &cp.proposal)
-    }
-
     /// Returns all by-reference proposals that have been cached for this group.
     ///
     /// The returned [`CachedProposal`] values contain the proposal content,
