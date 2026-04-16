@@ -366,6 +366,79 @@ async fn test_open_ciphertext<C: CipherSuiteProvider>(
 }
 
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
+async fn verify_hpke_psk_tests<C: CipherSuiteProvider>(cs: &C, test_cases: Vec<HpkePskTestCase>) {
+    let generated = generate_hpke_psk_tests(cs).await;
+    verify_hpke_psk_test(cs, generated).await;
+    verify_hpke_psk_test(cs, test_cases).await;
+}
+
+#[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
+async fn verify_hpke_psk_test<C: CipherSuiteProvider>(cs: &C, test_cases: Vec<HpkePskTestCase>) {
+    for test in test_cases {
+        let secret: HpkeSecretKey = test.secret.into();
+        let public: HpkePublicKey = test.public.into();
+        let aad = (!test.aad.is_empty()).then_some(test.aad.as_slice());
+        let psk_bundle = HpkePsk::new(&test.psk_id, &test.psk);
+
+        let ct = HpkeCiphertext {
+            kem_output: test.kem_output,
+            ciphertext: test.ciphertext,
+        };
+
+        let opened = cs
+            .hpke_open_psk(&ct, &secret, &public, &test.info, aad, psk_bundle)
+            .await
+            .unwrap();
+
+        assert_eq!(&*opened, &test.plaintext);
+    }
+}
+
+#[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
+#[cfg_attr(coverage_nightly, coverage(off))]
+async fn generate_hpke_psk_tests<C: CipherSuiteProvider>(cs: &C) -> Vec<HpkePskTestCase> {
+    let (secret, public) = cs.kem_generate().await.unwrap();
+
+    let sizes_iter = DATA_SIZES.iter().copied();
+    let mut tests = Vec::new();
+
+    for ((pt_size, info_size), aad_size) in sizes_iter
+        .clone()
+        .skip(1)
+        .cartesian_product(sizes_iter.clone())
+        .cartesian_product(sizes_iter.clone())
+    {
+        let plaintext = cs.random_bytes_vec(pt_size).unwrap();
+        let info = cs.random_bytes_vec(info_size).unwrap();
+        let aad = cs.random_bytes_vec(aad_size).unwrap();
+        let aad_opt = (aad_size > 0).then_some(aad.as_slice());
+
+        let psk = cs.random_bytes_vec(32).unwrap();
+        let psk_id = cs.random_bytes_vec(16).unwrap();
+        let psk_bundle = HpkePsk::new(&psk_id, &psk);
+
+        let sealed = cs
+            .hpke_seal_psk(&public, &info, aad_opt, &plaintext, psk_bundle)
+            .await
+            .unwrap();
+
+        tests.push(HpkePskTestCase {
+            secret: secret.to_vec(),
+            public: public.to_vec(),
+            plaintext,
+            info,
+            aad,
+            psk,
+            psk_id,
+            kem_output: sealed.kem_output,
+            ciphertext: sealed.ciphertext,
+        });
+    }
+
+    tests
+}
+
+#[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
 #[cfg_attr(coverage_nightly, coverage(off))]
 async fn generate_hpke_tests<C: CipherSuiteProvider>(cs: &C) -> HpkeTestCases {
     let ikm = cs.random_bytes_vec(cs.kdf_extract_size()).unwrap();
