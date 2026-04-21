@@ -14,8 +14,6 @@ jobs:
       with:
         rustflags: ''
     - uses: nanasess/setup-chromedriver@v2
-      with:
-        version: 'latest'
     - uses: jetli/wasm-pack-action@v0.4.0
       with:
         version: 'latest'
@@ -32,4 +30,3 @@ jobs:
     - name: WASM mls-rs-crypto-webcrypto
       working-directory: mls-rs-crypto-webcrypto
       run: wasm-pack test --headless --chrome --release
-      continue-on-error: true # not using it
