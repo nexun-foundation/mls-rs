@@ -14,6 +14,8 @@ jobs:
       with:
         rustflags: ''
     - uses: nanasess/setup-chromedriver@v2
+      with:
+        version: 'latest'
     - uses: jetli/wasm-pack-action@v0.4.0
       with:
         version: 'latest'
