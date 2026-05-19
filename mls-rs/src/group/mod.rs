@@ -2055,6 +2055,10 @@ where
             )
             .await
     }
+
+    pub fn signer(&self) -> &SignatureSecretKey {
+        &self.signer
+    }
 }
 
 impl<C> Group<C>
