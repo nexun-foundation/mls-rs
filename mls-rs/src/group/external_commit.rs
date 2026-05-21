@@ -7,6 +7,9 @@ use mls_rs_core::{
 };
 
 #[cfg(feature = "application_data")]
+use super::ComponentId;
+
+#[cfg(feature = "application_data")]
 use crate::group::proposal::{AppDataUpdateProposal, AppEphemeralProposal};
 use crate::{
     client_config::ClientConfig,
@@ -55,7 +58,7 @@ pub struct ExternalCommitBuilder<C: ClientConfig> {
     #[cfg(feature = "application_data")]
     application_data_update: std::collections::HashSet<AppDataUpdateProposal>,
     #[cfg(feature = "application_data")]
-    app_ephemeral: std::collections::HashSet<AppEphemeralProposal>,
+    app_ephemeral: std::collections::HashMap<ComponentId, AppEphemeralProposal>,
     #[cfg(feature = "psk")]
     external_psks: Vec<ExternalPskId>,
     authenticated_data: Vec<u8>,
@@ -79,7 +82,7 @@ impl<C: ClientConfig> ExternalCommitBuilder<C> {
             #[cfg(feature = "application_data")]
             application_data_update: std::collections::HashSet::new(),
             #[cfg(feature = "application_data")]
-            app_ephemeral: std::collections::HashSet::new(),
+            app_ephemeral: std::collections::HashMap::new(),
             #[cfg(feature = "psk")]
             external_psks: Vec::new(),
             #[cfg(feature = "custom_proposal")]
@@ -122,7 +125,7 @@ impl<C: ClientConfig> ExternalCommitBuilder<C> {
     /// Add an AppEphemeral proposal
     #[cfg(feature = "application_data")]
     pub fn with_app_ephemeral(mut self, proposal: AppEphemeralProposal) -> Result<Self, MlsError> {
-        self.app_ephemeral.insert(proposal);
+        self.app_ephemeral.insert(proposal.component_id, proposal);
         Ok(self)
     }
 
@@ -369,7 +372,7 @@ impl<C: ClientConfig> ExternalCommitBuilder<C> {
         }
 
         #[cfg(feature = "application_data")]
-        for eph in self.app_ephemeral {
+        for (_, eph) in self.app_ephemeral {
             proposals.push(Proposal::AppEphemeral(eph));
         }
 
