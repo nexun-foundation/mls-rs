@@ -1246,7 +1246,19 @@ where
     }
 
     #[cfg(feature = "application_data")]
+    #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
+    pub async fn propose_app_ephemeral(
+        &mut self,
+        component_id: ComponentId,
+        data: Vec<u8>,
+        authenticated_data: Vec<u8>,
+    ) -> Result<MlsMessage, MlsError> {
+        let proposal = Proposal::AppEphemeral(AppEphemeralProposal { component_id, data });
+        self.proposal_message(proposal, authenticated_data).await
+    }
+
     /// Create a proposal message to update application data in group context extensions
+    #[cfg(feature = "application_data")]
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
     pub async fn propose_app_data_update(
         &mut self,
