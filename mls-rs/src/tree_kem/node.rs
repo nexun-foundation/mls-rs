@@ -105,7 +105,7 @@ impl<'de> serde::Deserialize<'de> for LeafIndex {
     }
 }
 
-pub(crate) type NodeIndex = u32;
+pub type NodeIndex = u32;
 
 #[derive(Clone, Debug, PartialEq, MlsSize, MlsEncode, MlsDecode)]
 #[allow(clippy::large_enum_variant)]
