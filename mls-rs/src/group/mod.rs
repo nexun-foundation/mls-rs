@@ -30,7 +30,6 @@ use crate::psk::PreSharedKeyID;
 use crate::signer::Signable;
 use crate::tree_kem::hpke_encryption::HpkeEncryptable;
 use crate::tree_kem::kem::TreeKem;
-use crate::tree_kem::leaf_node::LeafNode;
 use crate::tree_kem::leaf_node_validator::{LeafNodeValidator, ValidationContext};
 use crate::tree_kem::path_secret::PathSecret;
 pub use crate::tree_kem::Capabilities;
@@ -168,6 +167,7 @@ mod interop_test_vectors;
 
 mod exported_tree;
 
+pub use crate::tree_kem::leaf_node::LeafNode;
 pub use crate::tree_kem::node::{LeafIndex, Node, NodeIndex, NodeVec, Parent};
 pub use exported_tree::ExportedTree;
 
