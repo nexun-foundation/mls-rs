@@ -18,13 +18,14 @@ use mls_rs_core::{
     protocol_version::ProtocolVersion,
 };
 
+use super::{
+    proposal::ReInitProposal, ClientConfig, CommitOutput, ExportedTree, JustPreSharedKeyID,
+    MessageProcessor, NewMemberInfo, PreSharedKeyID, PskGroupId, PskSecretInput,
+    ResumptionPSKUsage, ResumptionPsk,
+};
+use crate::framing::Sender;
 use crate::{client::MlsError, tree_kem::TreeKemPublic, Client, Group, MlsMessage};
 use crate::{group::Roster, time::MlsTime};
-
-use super::{
-    proposal::ReInitProposal, ClientConfig, ExportedTree, JustPreSharedKeyID, MessageProcessor,
-    NewMemberInfo, PreSharedKeyID, PskGroupId, PskSecretInput, ResumptionPSKUsage, ResumptionPsk,
-};
 
 pub struct ReinitClient<C: ClientConfig + Clone> {
     pub client: Client<C>,

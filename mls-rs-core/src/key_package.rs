@@ -7,7 +7,6 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::fmt::{self, Debug};
 use mls_rs_codec::{MlsDecode, MlsEncode, MlsSize};
-use std::collections::HashMap;
 
 use crate::{crypto::HpkeSecretKey, error::IntoAnyError};
 
