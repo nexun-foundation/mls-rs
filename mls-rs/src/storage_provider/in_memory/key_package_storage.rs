@@ -23,7 +23,6 @@ use std::sync::{Mutex, MutexGuard};
 use alloc::boxed::Box;
 #[cfg(not(feature = "std"))]
 use spin::{Mutex, MutexGuard};
-use std::collections::HashMap;
 
 use crate::map::LargeMap;
 
