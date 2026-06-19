@@ -9,7 +9,7 @@ use crate::{client::MlsError, error::IntoAnyError, MlsMessage};
 
 #[derive(Clone, PartialEq, Eq, MlsEncode, MlsDecode, MlsSize, Hash, PartialOrd, Ord)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub(crate) struct MessageHash(
+pub struct MessageHash(
     #[mls_codec(with = "mls_rs_codec::byte_vec")]
     #[cfg_attr(feature = "serde", serde(with = "mls_rs_core::vec_serde"))]
     Vec<u8>,

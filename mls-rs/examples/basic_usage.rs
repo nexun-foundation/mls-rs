@@ -74,8 +74,8 @@ fn main() -> Result<(), MlsError> {
     println!("Received message: {msg:?}");
 
     // Alice and bob write the group state to their configured storage engine
-    alice_group.write_to_storage()?;
-    bob_group.write_to_storage()?;
+    alice_group.write_to_storage(Default::default())?;
+    bob_group.write_to_storage(Default::default())?;
 
     Ok(())
 }

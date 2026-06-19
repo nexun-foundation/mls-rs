@@ -55,7 +55,7 @@ pub(crate) async fn create<P: CipherSuiteProvider>(
 
 #[derive(Clone, PartialEq, MlsSize, MlsEncode, MlsDecode)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub(crate) struct InterimTranscriptHash(
+pub struct InterimTranscriptHash(
     #[mls_codec(with = "mls_rs_codec::byte_vec")]
     #[cfg_attr(feature = "serde", serde(with = "mls_rs_core::vec_serde"))]
     Vec<u8>,

@@ -190,7 +190,7 @@ pub use crate::{
     key_package::{KeyPackage, KeyPackageRef},
     signer::SignContent,
     tree_kem::hpke_encryption::EncryptContext,
-    tree_kem::leaf_node::LeafNode,
+    tree_kem::leaf_node::{LeafNode, LeafNodeSource},
 };
 
 /// Error types.

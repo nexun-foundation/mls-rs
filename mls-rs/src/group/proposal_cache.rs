@@ -49,11 +49,11 @@ pub struct CachedProposal {
 
 #[cfg(feature = "by_ref_proposal")]
 #[derive(Clone, MlsSize, MlsEncode, MlsDecode)]
-pub(crate) struct ProposalCache {
+pub struct ProposalCache {
     protocol_version: ProtocolVersion,
     group_id: Vec<u8>,
-    pub(crate) proposals: crate::map::SmallMap<ProposalRef, CachedProposal>,
-    pub(crate) own_proposals: crate::map::SmallMap<MessageHash, ProposalMessageDescription>,
+    pub proposals: crate::map::SmallMap<ProposalRef, CachedProposal>,
+    pub own_proposals: crate::map::SmallMap<MessageHash, ProposalMessageDescription>,
 }
 
 #[cfg(feature = "by_ref_proposal")]
@@ -569,7 +569,7 @@ pub(crate) mod test_utils {
     impl ProposalCache {
         #[allow(clippy::too_many_arguments)]
         #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-        pub async fn resolve_for_commit_default<C, F, P, CSP>(
+        pub(crate) async fn resolve_for_commit_default<C, F, P, CSP>(
             &self,
             sender: Sender,
             proposal_list: Vec<ProposalOrRef>,
@@ -619,7 +619,7 @@ pub(crate) mod test_utils {
 
         #[allow(clippy::too_many_arguments)]
         #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-        pub async fn prepare_commit_default<C, F, P, CSP>(
+        pub(crate) async fn prepare_commit_default<C, F, P, CSP>(
             &self,
             sender: Sender,
             additional_proposals: Vec<Proposal>,
