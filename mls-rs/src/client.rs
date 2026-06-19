@@ -8,9 +8,7 @@ use crate::client_config::ClientConfig;
 use crate::group::framing::MlsMessage;
 
 use crate::group::{cipher_suite_provider, validate_group_info_joiner, GroupInfo};
-use crate::group::{
-    framing::MlsMessagePayload, snapshot::Snapshot, ExportedTree, Group, NewMemberInfo,
-};
+use crate::group::{framing::MlsMessagePayload, ExportedTree, Group, NewMemberInfo};
 #[cfg(feature = "by_ref_proposal")]
 use crate::group::{
     framing::{Content, PublicMessage, Sender, WireFormat},
@@ -23,16 +21,16 @@ use crate::protocol_version::ProtocolVersion;
 use crate::time::MlsTime;
 use crate::tree_kem::node::NodeIndex;
 use alloc::vec::Vec;
-use mls_rs_codec::MlsDecode;
 use mls_rs_core::crypto::{CryptoProvider, SignatureSecretKey};
 use mls_rs_core::error::{AnyError, IntoAnyError};
 use mls_rs_core::extension::{ExtensionError, ExtensionList, ExtensionType};
-use mls_rs_core::group::{GroupStateStorage, ProposalType};
+use mls_rs_core::group::ProposalType;
 use mls_rs_core::identity::{CredentialType, IdentityProvider, MemberValidationContext};
 use mls_rs_core::key_package::KeyPackageStorage;
 
 use crate::group::external_commit::ExternalCommitBuilder;
 
+use crate::group::state_repo::CoreGroupStateStorage;
 #[cfg(feature = "by_ref_proposal")]
 use alloc::boxed::Box;
 
@@ -372,6 +370,8 @@ pub enum MlsError {
     DefaultValueListed,
     #[cfg_attr(feature = "std", error("not a subgroup"))]
     NotASubgroup,
+    #[cfg_attr(feature = "std", error("{0}"))]
+    NestedError(String),
     #[cfg_attr(feature = "std", error("{0}"))]
     ImplementationError(&'static str),
 }
@@ -793,13 +793,9 @@ where
         let snapshot = self
             .config
             .group_state_storage()
-            .state(group_id)
-            .await
-            .map_err(|e| MlsError::GroupStorageError(e.into_any_error()))?
+            .state_inner(group_id)
+            .await?
             .ok_or(MlsError::GroupNotFound)?;
-
-        let snapshot = Snapshot::mls_decode(&mut &**snapshot)?;
-
         Group::from_snapshot(self.config.clone(), snapshot).await
     }
 
@@ -814,15 +810,13 @@ where
         group_id: &[u8],
         tree_data: ExportedTree<'_>,
     ) -> Result<Group<C>, MlsError> {
-        let snapshot = self
+        let mut snapshot = self
             .config
             .group_state_storage()
-            .state(group_id)
-            .await
-            .map_err(|e| MlsError::GroupStorageError(e.into_any_error()))?
+            .state_inner(group_id)
+            .await?
             .ok_or(MlsError::GroupNotFound)?;
 
-        let mut snapshot = Snapshot::mls_decode(&mut &**snapshot)?;
         snapshot.state.public_tree.nodes = tree_data.0.into_owned();
 
         Group::from_snapshot(self.config.clone(), snapshot).await

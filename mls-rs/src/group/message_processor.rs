@@ -305,6 +305,8 @@ pub struct CommitMessageDescription {
     pub is_external: bool,
     /// The index in the group state of the member who performed this commit.
     pub committer: u32,
+    /// Whether the commit had an UpdatePath
+    pub has_update_path: bool,
     /// A full description of group state changes as a result of this commit.
     pub effect: CommitEffect,
     /// Plaintext authenticated data in the received MLS packet.
@@ -720,6 +722,13 @@ pub(crate) trait MessageProcessor: Send + Sync {
         )
         .await?;
 
+        let has_update_path = auth_content
+            .content
+            .content
+            .as_commit()
+            .map(|c| c.path.is_some())
+            .unwrap_or_default();
+
         #[cfg(any(feature = "private_message", feature = "by_ref_proposal"))]
         let commit = match auth_content.content.content {
             Content::Commit(commit) => Ok(commit),
@@ -868,11 +877,16 @@ pub(crate) trait MessageProcessor: Send + Sync {
                     provisional_state,
                 )
                 .await?;
+            } else {
+                // FIXME: even if removed we should keep the past epoch around ijust in case
+                // self.insert_past_epoch(false).await?;
             }
+
             Ok(CommitMessageDescription {
                 is_external: matches!(auth_content.content.sender, Sender::NewMemberCommit),
                 authenticated_data: auth_content.content.authenticated_data,
                 committer: *sender,
+                has_update_path,
                 effect: commit_effect,
                 #[cfg(feature = "application_data")]
                 application_data,

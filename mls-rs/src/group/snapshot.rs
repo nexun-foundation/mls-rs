@@ -2,9 +2,6 @@
 // Copyright by contributors to this project.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-use alloc::boxed::Box;
-use alloc::vec::Vec;
-
 use crate::{
     client::MlsError,
     client_config::ClientConfig,
@@ -15,6 +12,8 @@ use crate::{
     },
     tree_kem::TreeKemPrivate,
 };
+use alloc::boxed::Box;
+use alloc::vec::Vec;
 
 #[cfg(feature = "by_ref_proposal")]
 use crate::{
@@ -34,29 +33,74 @@ use mls_rs_core::identity::IdentityProvider;
 use super::PendingCommit;
 
 use crate::framing::Sender;
+use crate::group::state_repo::GroupWriteContext;
 pub(crate) use legacy::LegacyPendingCommit;
 
 #[derive(Debug, PartialEq, Clone, MlsEncode, MlsDecode, MlsSize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct Snapshot {
-    version: u16,
-    pub(crate) state: RawGroupState,
-    private_tree: TreeKemPrivate,
-    epoch_secrets: EpochSecrets,
-    key_schedule: KeySchedule,
+    pub version: u16,
+    pub state: RawGroupState,
+    pub private_tree: TreeKemPrivate,
+    pub epoch_secrets: EpochSecrets,
+    pub key_schedule: KeySchedule,
     #[cfg(feature = "by_ref_proposal")]
-    pending_updates: SmallMap<HpkePublicKey, (HpkeSecretKey, Option<SignatureSecretKey>)>,
-    pending_commit_snapshot: PendingCommitSnapshot,
-    signer: SignatureSecretKey,
+    pub pending_updates: SmallMap<HpkePublicKey, (HpkeSecretKey, Option<SignatureSecretKey>)>,
+    pub pending_commit_snapshot: PendingCommitSnapshot,
+    pub signer: SignatureSecretKey,
+}
+
+impl Snapshot {
+    pub fn to_ref(&self) -> SnapshotRef<'_> {
+        SnapshotRef {
+            version: self.version,
+            state: self.state.clone(),
+            private_tree: &self.private_tree,
+            epoch_secrets: &self.epoch_secrets,
+            key_schedule: &self.key_schedule,
+            pending_updates: &self.pending_updates,
+            pending_commit_snapshot: &self.pending_commit_snapshot,
+            signer: &self.signer,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct SnapshotRef<'a> {
+    pub version: u16,
+    pub state: RawGroupState,
+    pub private_tree: &'a TreeKemPrivate,
+    pub epoch_secrets: &'a EpochSecrets,
+    pub key_schedule: &'a KeySchedule,
+    #[cfg(feature = "by_ref_proposal")]
+    pub pending_updates: &'a SmallMap<HpkePublicKey, (HpkeSecretKey, Option<SignatureSecretKey>)>,
+    pub pending_commit_snapshot: &'a PendingCommitSnapshot,
+    pub signer: &'a SignatureSecretKey,
+}
+
+impl SnapshotRef<'_> {
+    pub fn into_owned(self) -> Snapshot {
+        Snapshot {
+            version: self.version,
+            state: self.state,
+            private_tree: self.private_tree.clone(),
+            epoch_secrets: self.epoch_secrets.clone(),
+            key_schedule: self.key_schedule.clone(),
+            pending_updates: self.pending_updates.clone(),
+            pending_commit_snapshot: self.pending_commit_snapshot.clone(),
+            signer: self.signer.clone(),
+        }
+    }
 }
 
 #[derive(Debug, PartialEq, Clone, Default, MlsSize, MlsEncode, MlsDecode)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(u8)]
-pub(crate) enum PendingCommitSnapshot {
+pub enum PendingCommitSnapshot {
     #[default]
     None = 0u8,
     // This must be 1 for backwards compatibility
+    #[allow(private_interfaces)]
     LegacyPendingCommit(Box<LegacyPendingCommit>) = 1u8,
     PendingCommit(#[mls_codec(with = "mls_rs_codec::byte_vec")] Vec<u8>) = 2u8,
 }
@@ -79,7 +123,7 @@ impl PendingCommitSnapshot {
         self == &Self::None
     }
 
-    pub fn commit_hash(&self) -> Result<Option<MessageHash>, MlsError> {
+    pub(crate) fn commit_hash(&self) -> Result<Option<MessageHash>, MlsError> {
         match self {
             Self::None => Ok(None),
             Self::PendingCommit(bytes) => Ok(Some(
@@ -94,16 +138,16 @@ impl PendingCommitSnapshot {
 
 #[derive(Debug, MlsEncode, MlsDecode, MlsSize, PartialEq, Clone)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub(crate) struct RawGroupState {
-    pub(crate) context: GroupContext,
+pub struct RawGroupState {
+    pub context: GroupContext,
     #[cfg(feature = "by_ref_proposal")]
-    pub(crate) proposals: SmallMap<ProposalRef, CachedProposal>,
+    pub proposals: SmallMap<ProposalRef, CachedProposal>,
     #[cfg(feature = "by_ref_proposal")]
-    pub(crate) own_proposals: SmallMap<MessageHash, ProposalMessageDescription>,
-    pub(crate) public_tree: TreeKemPublic,
-    pub(crate) interim_transcript_hash: InterimTranscriptHash,
-    pub(crate) pending_reinit: Option<(Sender, ReInitProposal)>,
-    pub(crate) confirmation_tag: ConfirmationTag,
+    pub own_proposals: SmallMap<MessageHash, ProposalMessageDescription>,
+    pub public_tree: TreeKemPublic,
+    pub interim_transcript_hash: InterimTranscriptHash,
+    pub pending_reinit: Option<(Sender, ReInitProposal)>,
+    pub confirmation_tag: ConfirmationTag,
 }
 
 impl RawGroupState {
@@ -199,25 +243,23 @@ where
     ///
     /// Returns the amount of bytes written to storage
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-    pub async fn write_to_storage(&mut self) -> Result<usize, MlsError> {
-        self.state_repo.write_to_storage(self.snapshot()?).await
+    pub async fn write_to_storage(&mut self, ctx: GroupWriteContext) -> Result<usize, MlsError> {
+        let snapshot = SnapshotRef {
+            state: RawGroupState::export(&self.state),
+            private_tree: &self.private_tree,
+            key_schedule: &self.key_schedule,
+            #[cfg(feature = "by_ref_proposal")]
+            pending_updates: &self.pending_updates,
+            pending_commit_snapshot: &self.pending_commit,
+            epoch_secrets: &self.epoch_secrets,
+            version: 1,
+            signer: &self.signer,
+        };
+        self.state_repo.write_to_storage(snapshot, ctx).await
     }
 
-    /// Write the current state of the group to the
-    /// [`GroupStorageProvider`](crate::GroupStateStorage)
-    /// that is currently in use by the group.
-    /// The tree is not included in the state and can be stored
-    /// separately by calling [`Group::export_tree`].
-    #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-    pub async fn write_to_storage_without_ratchet_tree(&mut self) -> Result<usize, MlsError> {
-        let mut snapshot = self.snapshot()?;
-        snapshot.state.public_tree.nodes = Default::default();
-
-        self.state_repo.write_to_storage(snapshot).await
-    }
-
-    pub fn snapshot(&self) -> Result<Snapshot, MlsError> {
-        Ok(Snapshot {
+    pub fn snapshot(&self) -> Snapshot {
+        Snapshot {
             state: RawGroupState::export(&self.state),
             private_tree: self.private_tree.clone(),
             key_schedule: self.key_schedule.clone(),
@@ -227,7 +269,7 @@ where
             epoch_secrets: self.epoch_secrets.clone(),
             version: 1,
             signer: self.signer.clone(),
-        })
+        }
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
@@ -381,7 +423,7 @@ mod tests {
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
     async fn snapshot_restore(group: TestGroup) {
-        let snapshot = group.snapshot().unwrap();
+        let snapshot = group.snapshot();
 
         let group_restored = Group::from_snapshot(group.config.clone(), snapshot)
             .await

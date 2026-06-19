@@ -2,6 +2,7 @@
 // Copyright by contributors to this project.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+use crate::group::state_repo::CoreGroupStateStorage;
 use crate::{
     extension::ExtensionType,
     group::{mls_rules::MlsRules, proposal::ProposalType},
@@ -13,14 +14,14 @@ use crate::{
 };
 use alloc::vec::Vec;
 use mls_rs_core::{
-    crypto::CryptoProvider, group::GroupStateStorage, identity::IdentityProvider,
-    key_package::KeyPackageStorage, psk::PreSharedKeyStorage,
+    crypto::CryptoProvider, identity::IdentityProvider, key_package::KeyPackageStorage,
+    psk::PreSharedKeyStorage,
 };
 
 pub trait ClientConfig: Send + Sync + Clone {
     type KeyPackageRepository: KeyPackageStorage + Clone;
     type PskStore: PreSharedKeyStorage + Clone;
-    type GroupStateStorage: GroupStateStorage + Clone;
+    type GroupStateStorage: CoreGroupStateStorage + Clone;
     type IdentityProvider: IdentityProvider + Clone;
     type MlsRules: MlsRules + Clone;
     type CryptoProvider: CryptoProvider + Clone;

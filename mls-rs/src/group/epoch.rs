@@ -25,15 +25,15 @@ use crate::group::secret_tree::SecretTree;
 #[cfg(feature = "prior_epoch")]
 #[derive(Debug, Clone, MlsEncode, MlsDecode, MlsSize, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub(crate) struct PriorEpoch {
-    pub(crate) context: GroupContext,
-    pub(crate) self_index: LeafIndex,
-    pub(crate) secrets: EpochSecrets,
-    pub(crate) signature_public_keys: Vec<Option<SignaturePublicKey>>,
+pub struct PriorEpoch {
+    pub context: GroupContext,
+    pub self_index: LeafIndex,
+    pub secrets: EpochSecrets,
+    pub signature_public_keys: Vec<Option<SignaturePublicKey>>,
     #[cfg(feature = "prior_epoch_membership_key")]
     #[mls_codec(with = "mls_rs_codec::byte_vec")]
     #[cfg_attr(feature = "serde", serde(with = "mls_rs_core::zeroizing_serde"))]
-    pub(crate) membership_key: Zeroizing<Vec<u8>>,
+    pub membership_key: Zeroizing<Vec<u8>>,
 }
 
 #[cfg(feature = "prior_epoch")]
@@ -70,19 +70,19 @@ impl GroupStateProvider for PriorEpoch {
 
 #[derive(Debug, Clone, PartialEq, MlsEncode, MlsDecode, MlsSize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub(crate) struct EpochSecrets {
+pub struct EpochSecrets {
     #[cfg(feature = "psk")]
     #[mls_codec(with = "mls_rs_codec::byte_vec")]
-    pub(crate) resumption_secret: PreSharedKey,
+    pub resumption_secret: PreSharedKey,
     #[mls_codec(with = "mls_rs_codec::byte_vec")]
-    pub(crate) sender_data_secret: SenderDataSecret,
+    pub sender_data_secret: SenderDataSecret,
     #[cfg(any(feature = "secret_tree_access", feature = "private_message"))]
-    pub(crate) secret_tree: SecretTree<NodeIndex>,
+    pub secret_tree: SecretTree<NodeIndex>,
 }
 
 #[derive(Clone, PartialEq, MlsEncode, MlsDecode, MlsSize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub(crate) struct SenderDataSecret(
+pub struct SenderDataSecret(
     #[mls_codec(with = "mls_rs_codec::byte_vec")]
     #[cfg_attr(feature = "serde", serde(with = "mls_rs_core::zeroizing_serde"))]
     Zeroizing<Vec<u8>>,
