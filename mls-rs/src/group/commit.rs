@@ -285,7 +285,6 @@ where
         data: Vec<u8>,
     ) -> Result<Self, MlsError> {
         let proposal = self.group.app_ephemeral_proposal(component_id, data);
-
         self.proposals.push(proposal);
         Ok(self)
     }
@@ -299,7 +298,6 @@ where
         operation: AppDataUpdateOperation,
     ) -> Result<Self, MlsError> {
         let proposal = self.group.app_data_update_proposal(component_id, operation);
-
         self.proposals.push(proposal);
         Ok(self)
     }
@@ -938,18 +936,12 @@ where
         };
 
         #[cfg(feature = "application_data")]
-        let application_data = {
-            let mut data: BTreeMap<u32, Vec<Vec<u8>>> = BTreeMap::new();
-            for proposal in provisional_state
-                .applied_proposals
-                .app_ephemeral_proposals()
-            {
-                data.entry(proposal.proposal.component_id)
-                    .or_default()
-                    .push(proposal.proposal.data.clone());
-            }
-            data
-        };
+        let application_data = provisional_state
+            .applied_proposals
+            .app_ephemeral_proposals()
+            .iter()
+            .map(|p| (p.proposal.component_id, p.proposal.data.clone()))
+            .collect::<BTreeMap<ComponentId, Vec<u8>>>();
 
         let welcome_messages =
             if commit_options.single_welcome_message && !encrypted_path_secrets.is_empty() {

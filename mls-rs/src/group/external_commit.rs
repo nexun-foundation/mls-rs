@@ -7,7 +7,10 @@ use mls_rs_core::{
 };
 
 #[cfg(feature = "application_data")]
-use crate::group::proposal::AppDataUpdateProposal;
+use super::ComponentId;
+
+#[cfg(feature = "application_data")]
+use crate::group::proposal::{AppDataUpdateProposal, AppEphemeralProposal};
 use crate::{
     client_config::ClientConfig,
     group::{
@@ -54,6 +57,8 @@ pub struct ExternalCommitBuilder<C: ClientConfig> {
     to_remove: Option<u32>,
     #[cfg(feature = "application_data")]
     application_data_update: std::collections::HashSet<AppDataUpdateProposal>,
+    #[cfg(feature = "application_data")]
+    app_ephemeral: std::collections::HashMap<ComponentId, AppEphemeralProposal>,
     #[cfg(feature = "psk")]
     external_psks: Vec<ExternalPskId>,
     authenticated_data: Vec<u8>,
@@ -76,6 +81,8 @@ impl<C: ClientConfig> ExternalCommitBuilder<C> {
             config,
             #[cfg(feature = "application_data")]
             application_data_update: std::collections::HashSet::new(),
+            #[cfg(feature = "application_data")]
+            app_ephemeral: std::collections::HashMap::new(),
             #[cfg(feature = "psk")]
             external_psks: Vec::new(),
             #[cfg(feature = "custom_proposal")]
@@ -113,6 +120,13 @@ impl<C: ClientConfig> ExternalCommitBuilder<C> {
             authenticated_data: data,
             ..self
         }
+    }
+
+    /// Add an AppEphemeral proposal
+    #[cfg(feature = "application_data")]
+    pub fn with_app_ephemeral(mut self, proposal: AppEphemeralProposal) -> Result<Self, MlsError> {
+        self.app_ephemeral.insert(proposal.component_id, proposal);
+        Ok(self)
     }
 
     /// Add an application data update proposal
@@ -355,6 +369,11 @@ impl<C: ClientConfig> ExternalCommitBuilder<C> {
         #[cfg(feature = "application_data")]
         for adu in self.application_data_update {
             proposals.push(Proposal::AppDataUpdate(adu));
+        }
+
+        #[cfg(feature = "application_data")]
+        for (_, eph) in self.app_ephemeral {
+            proposals.push(Proposal::AppEphemeral(eph));
         }
 
         let (commit_output, pending_commit) = group
