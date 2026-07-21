@@ -16,6 +16,7 @@ use crate::{
     client::MlsError,
     client_config::ClientConfig,
     extension::RatchetTreeExt,
+    group::proposal_filter::path_update_required,
     identity::SigningIdentity,
     protocol_version::ProtocolVersion,
     signer::Signable,
@@ -46,7 +47,7 @@ use super::{
     framing::{Content, MlsMessage, MlsMessagePayload, Sender},
     key_schedule::{KeySchedule, WelcomeSecret},
     message_hash::MessageHash,
-    message_processor::{path_update_required, MessageProcessor},
+    message_processor::MessageProcessor,
     message_signature::AuthenticatedContent,
     mls_rules::CommitDirection,
     proposal::{Proposal, ProposalOrRef},
@@ -631,8 +632,8 @@ where
             )
             .map_err(|e| MlsError::MlsRulesError(e.into_any_error()))?;
 
-        let mut perform_path_update = commit_options.path_required
-            || path_update_required(&provisional_state.applied_proposals);
+        let perform_path_update = commit_options.path_required
+            || path_update_required(&provisional_state.applied_proposals, &mls_rules);
 
         perform_path_update |= has_new_signer
             || new_signing_identity.is_some()

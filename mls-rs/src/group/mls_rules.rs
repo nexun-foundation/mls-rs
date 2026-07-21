@@ -2,6 +2,8 @@
 // Copyright by contributors to this project.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+use alloc::vec::Vec;
+
 use crate::group::{proposal_filter::ProposalBundle, Roster};
 
 #[cfg(feature = "private_message")]
@@ -10,8 +12,13 @@ use crate::{
     WireFormat,
 };
 
-#[cfg(feature = "application_data")]
-use super::application_data::ComponentId;
+use alloc::boxed::Box;
+use core::convert::Infallible;
+use mls_rs_core::{
+    error::IntoAnyError,
+    group::{Member, ProposalType},
+    identity::SigningIdentity,
+};
 
 use super::GroupContext;
 use crate::LeafNode;
@@ -188,35 +195,27 @@ pub trait MlsRules: Send + Sync {
         current_context: &GroupContext,
     ) -> Result<EncryptionOptions, Self::Error>;
 
-    #[cfg(feature = "application_data")]
-    /// The list of components supported by the application. If a commit contains an [ApplicationDataProposal](crate::group::proposal::ApplicationDataProposal) or an [ApplicationDataUpdateProposal](crate::group::proposal::ApplicationDataUpdateProposal)
-    /// referring to a [ComponentId] not in the list, then the commit will be rejected
-    fn supported_components(&self) -> &[ComponentId] {
-        &[]
+    /// Returns whether a commit containing a custom proposal of the given type must include an
+    /// update path.
+    ///
+    /// Per RFC 9420 §12.4, a proposal type "requires a path" when it changes group membership in a
+    /// way that needs the forward secrecy and post-compromise security guarantees an UpdatePath
+    /// provides. The standard proposal types that do *not* require a path are Add, PSK, and
+    /// ReInit. For custom proposal types, this method lets the application decide.
+    ///
+    /// This is called during commit creation and validation for every custom proposal in the
+    /// commit. If any custom proposal returns `true`, a generated commit will include, or
+    /// a received commit will require an update path.
+    ///
+    /// The default implementation returns `true` (conservative: always require a path).
+    fn custom_proposal_requires_update_path(&self, _custom_proposal_type: ProposalType) -> bool {
+        true
     }
-
-    #[cfg(feature = "application_data")]
-    /// checks the component data in an [ApplicationDataProposal](crate::group::proposal::ApplicationDataProposal)
-    /// if this returns false, the commit will be rejected
-    fn validate_component_data(&self, _component_id: ComponentId, _component_data: &[u8]) -> bool {
-        false
-    }
-
-    #[cfg(feature = "application_data")]
-    /// When receiving an [ApplicationDataUpdateProposal](crate::group::proposal::ApplicationDataUpdateProposal),
-    /// this will be called with the proposal's [ComponentId], the existing component data if already present in the
-    /// group context, and the update data. This then returns the new component data to be stored.
-    async fn update_components(
-        &self,
-        _component_id: ComponentId,
-        _component_data: Option<&[u8]>,
-        _update: &[u8],
-        _roster: &Roster,
-    ) -> Result<Vec<u8>, Self::Error>;
 }
 
 macro_rules! delegate_mls_rules {
     ($implementer:ty) => {
+        #[cfg_attr(coverage_nightly, coverage(off))]
         #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
         #[cfg_attr(mls_build_async, maybe_async::must_be_async)]
         impl<T: MlsRules + ?Sized> MlsRules for $implementer {
@@ -253,18 +252,11 @@ macro_rules! delegate_mls_rules {
                 (**self).encryption_options(roster, context)
             }
 
-            #[cfg(feature = "application_data")]
-            #[cfg_attr(mls_build_async, maybe_async::must_be_async)]
-            async fn update_components(
+            fn custom_proposal_requires_update_path(
                 &self,
-                component_id: ComponentId,
-                component_data: Option<&[u8]>,
-                update: &[u8],
-                roster: &Roster,
-            ) -> Result<Vec<u8>, Self::Error> {
-                (**self)
-                    .update_components(component_id, component_data, update, roster)
-                    .await
+                custom_proposal_type: ProposalType,
+            ) -> bool {
+                (**self).custom_proposal_requires_update_path(custom_proposal_type)
             }
         }
     };
@@ -279,6 +271,7 @@ delegate_mls_rules!(&T);
 pub struct DefaultMlsRules {
     pub commit_options: CommitOptions,
     pub encryption_options: EncryptionOptions,
+    pub custom_proposals_that_require_update_path: Vec<ProposalType>,
 }
 
 impl DefaultMlsRules {
@@ -292,15 +285,25 @@ impl DefaultMlsRules {
     pub fn with_commit_options(self, commit_options: CommitOptions) -> Self {
         Self {
             commit_options,
-            encryption_options: self.encryption_options,
+            ..self
         }
     }
 
     /// Set encryption options.
     pub fn with_encryption_options(self, encryption_options: EncryptionOptions) -> Self {
         Self {
-            commit_options: self.commit_options,
             encryption_options,
+            ..self
+        }
+    }
+
+    pub fn with_custom_proposals_that_require_update_path(
+        self,
+        custom_proposals_that_require_update_path: Vec<ProposalType>,
+    ) -> Self {
+        Self {
+            custom_proposals_that_require_update_path,
+            ..self
         }
     }
 }
@@ -338,14 +341,8 @@ impl MlsRules for DefaultMlsRules {
         Ok(self.encryption_options)
     }
 
-    #[cfg(feature = "application_data")]
-    async fn update_components(
-        &self,
-        _component_id: ComponentId,
-        _component_data: Option<&[u8]>,
-        update: &[u8],
-        _roster: &Roster,
-    ) -> Result<Vec<u8>, Self::Error> {
-        Ok(update.to_owned())
+    fn custom_proposal_requires_update_path(&self, custom_proposal_type: ProposalType) -> bool {
+        self.custom_proposals_that_require_update_path
+            .contains(&custom_proposal_type)
     }
 }
