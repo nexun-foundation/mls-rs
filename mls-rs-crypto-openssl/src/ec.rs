@@ -452,7 +452,10 @@ mod tests {
                 .copied()
                 .filter(|c| !byte_equal(*c, curve))
             {
-                println!("Mismatched curve public key import : key curve {curve:?}, import curve {other_curve:?}");
+                println!(
+                    "Mismatched curve public key import : key curve {:?}, import curve {:?}",
+                    curve, other_curve
+                );
 
                 let public_key = get_test_public_keys().get_key_from_curve(curve);
                 let res = pub_key_from_uncompressed(&public_key, other_curve);
