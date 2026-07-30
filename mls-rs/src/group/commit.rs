@@ -1532,9 +1532,9 @@ mod tests {
         let current_leaf_node = groups[0].current_user_leaf_node().unwrap();
         let mut capabilities = current_leaf_node.capabilities.clone();
         capabilities.credentials.push(CredentialType::new(42));
-        capabilities.extensions.push(ExtensionType::APPLICATION_ID);
+        capabilities.extensions.push(ExtensionType::new(42));
 
-        let test_ext = Extension::new(ExtensionType::APPLICATION_ID, b"1234".to_vec());
+        let test_ext = Extension::new(ExtensionType::new(42), b"1234".to_vec());
         let mut extensions = current_leaf_node.extensions.clone();
         extensions.0.push(test_ext.clone());
 
@@ -1580,9 +1580,9 @@ mod tests {
         assert!(!current_leaf_node
             .capabilities
             .extensions
-            .contains(&ExtensionType::APPLICATION_ID));
+            .contains(&ExtensionType::new(42)));
 
-        let test_ext = Extension::new(ExtensionType::APPLICATION_ID, b"1234".to_vec());
+        let test_ext = Extension::new(ExtensionType::new(42), b"1234".to_vec());
         let mut extensions = current_leaf_node.extensions.clone();
         extensions.0.push(test_ext.clone());
 
@@ -1593,7 +1593,7 @@ mod tests {
             .await;
         assert!(matches!(
             commit.unwrap_err(),
-            MlsError::ExtensionNotInCapabilities(ExtensionType::APPLICATION_ID)
+            MlsError::ExtensionNotInCapabilities(ext) if ext == ExtensionType::new(42)
         ));
     }
 
