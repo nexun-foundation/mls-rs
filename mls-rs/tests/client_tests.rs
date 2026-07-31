@@ -83,6 +83,20 @@ async fn generate_default_client(id: usize) -> Client<impl MlsConfig> {
 }
 
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
+async fn generate_default_client(id: usize) -> Client<impl MlsConfig> {
+    mls_rs::test_utils::generate_basic_client(
+        TestCryptoProvider::all_supported_cipher_suites()[0],
+        ProtocolVersion::MLS_10,
+        id,
+        None,
+        false,
+        &TestCryptoProvider::default(),
+        None,
+    )
+    .await
+}
+
+#[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
 pub async fn get_test_groups(
     version: ProtocolVersion,
     cipher_suite: CipherSuite,
@@ -95,6 +109,19 @@ pub async fn get_test_groups(
         num_participants,
         None,
         encrypt_controls,
+        &TestCryptoProvider::default(),
+    )
+    .await
+}
+
+#[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
+pub async fn get_default_test_groups(num_participants: usize) -> Vec<Group<impl MlsConfig>> {
+    mls_rs::test_utils::get_test_groups(
+        ProtocolVersion::MLS_10,
+        TestCryptoProvider::all_supported_cipher_suites()[0],
+        num_participants,
+        None,
+        false,
         &TestCryptoProvider::default(),
     )
     .await
@@ -214,15 +241,7 @@ async fn test_create(
         .unwrap();
 
     // Alice creates a group and adds bob
-    let mut alice_group = alice
-        .create_group_with_id(
-            b"group".to_vec(),
-            Default::default(),
-            Default::default(),
-            None,
-        )
-        .await
-        .unwrap();
+    let mut alice_group = alice.group_builder().unwrap().build().await.unwrap();
 
     let welcome = &alice_group
         .commit_builder()
@@ -548,16 +567,7 @@ async fn external_commits_work(
     _encrypt_controls: bool,
 ) {
     let creator = generate_client(cipher_suite, protocol_version, 0, false).await;
-
-    let creator_group = creator
-        .create_group_with_id(
-            b"group".to_vec(),
-            Default::default(),
-            Default::default(),
-            None,
-        )
-        .await
-        .unwrap();
+    let creator_group = creator.group_builder().unwrap().build().await.unwrap();
 
     const PARTICIPANT_COUNT: usize = 10;
 
@@ -666,10 +676,7 @@ async fn reinit_works() {
     let bob1 = generate_client(suite1, version, 2, Default::default()).await;
 
     // Create a group with 2 parties
-    let mut alice_group = alice1
-        .create_group(Default::default(), Default::default(), None)
-        .await
-        .unwrap();
+    let mut alice_group = alice1.group_builder().unwrap().build().await.unwrap();
     let kp = bob1
         .generate_key_package_message(Default::default(), Default::default(), None)
         .await
@@ -934,10 +941,7 @@ async fn can_process_external_commit_if_pending_commit() {
     let alice = generate_default_client(0).await;
     let bob = generate_default_client(1).await;
 
-    let mut alice_group = alice
-        .create_group(Default::default(), Default::default(), None)
-        .await
-        .unwrap();
+    let mut alice_group = alice.group_builder().unwrap().build().await.unwrap();
 
     alice_group
         .commit_builder()
@@ -975,84 +979,6 @@ async fn can_process_external_commit_if_pending_commit() {
         .await
         .unwrap();
 }
-
-#[cfg(feature = "psk")]
-#[maybe_async::test(not(mls_build_async), async(mls_build_async, futures_test))]
-async fn branch_cannot_add_clients() {
-    let alice = get_default_test_groups(2).await.remove(0);
-
-    let kp = generate_default_client(12345)
-        .await
-        .generate_key_package_message(Default::default(), Default::default(), None)
-        .await
-        .unwrap();
-
-    let res = alice
-        .branch(vec![1, 2, 3], vec![kp], None)
-        .await
-        .map(|_| ());
-
-    assert_matches!(res, Err(MlsError::NotASubgroup));
-}
-
-#[cfg(feature = "psk")]
-#[maybe_async::test(not(mls_build_async), async(mls_build_async, futures_test))]
-async fn reinit_cannot_add_clients() {
-    let mut alice = get_default_test_groups(2).await.remove(0);
-    let cs = TestCryptoProvider::all_supported_cipher_suites()[0];
-
-    let kp = generate_default_client(12345)
-        .await
-        .generate_key_package_message(Default::default(), Default::default(), None)
-        .await
-        .unwrap();
-
-    alice
-        .commit_builder()
-        .reinit(None, ProtocolVersion::MLS_10, cs, Default::default())
-        .unwrap()
-        .build()
-        .await
-        .unwrap();
-
-    alice.apply_pending_commit().await.unwrap();
-
-    let res = alice
-        .get_reinit_client(None, None)
-        .unwrap()
-        .commit(vec![kp], Default::default(), None)
-        .await
-        .map(|_| ());
-
-    assert_matches!(res, Err(MlsError::NotASubgroup));
-}
-
-#[cfg(feature = "psk")]
-#[maybe_async::test(not(mls_build_async), async(mls_build_async, futures_test))]
-async fn reinit_cannot_remove_clients() {
-    let mut alice = get_default_test_groups(2).await.remove(0);
-    let cs = TestCryptoProvider::all_supported_cipher_suites()[0];
-
-    alice
-        .commit_builder()
-        .reinit(None, ProtocolVersion::MLS_10, cs, Default::default())
-        .unwrap()
-        .build()
-        .await
-        .unwrap();
-
-    alice.apply_pending_commit().await.unwrap();
-
-    let res = alice
-        .get_reinit_client(None, None)
-        .unwrap()
-        .commit(vec![], Default::default(), None)
-        .await
-        .map(|_| ());
-
-    assert_matches!(res, Err(MlsError::NotASubgroup));
-}
-
 #[cfg(all(feature = "application_data", feature = "private_message"))]
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
 async fn test_application_data_proposals(

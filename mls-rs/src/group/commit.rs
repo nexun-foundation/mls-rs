@@ -16,6 +16,7 @@ use crate::{
     client::MlsError,
     client_config::ClientConfig,
     extension::RatchetTreeExt,
+    group::proposal_filter::path_update_required,
     identity::SigningIdentity,
     protocol_version::ProtocolVersion,
     signer::Signable,
@@ -46,7 +47,7 @@ use super::{
     framing::{Content, MlsMessage, MlsMessagePayload, Sender},
     key_schedule::{KeySchedule, WelcomeSecret},
     message_hash::MessageHash,
-    message_processor::{path_update_required, MessageProcessor},
+    message_processor::MessageProcessor,
     message_signature::AuthenticatedContent,
     mls_rules::CommitDirection,
     proposal::{Proposal, ProposalOrRef},
@@ -632,7 +633,7 @@ where
             .map_err(|e| MlsError::MlsRulesError(e.into_any_error()))?;
 
         let mut perform_path_update = commit_options.path_required
-            || path_update_required(&provisional_state.applied_proposals);
+            || path_update_required(&provisional_state.applied_proposals, &mls_rules);
 
         perform_path_update |= has_new_signer
             || new_signing_identity.is_some()
@@ -659,9 +660,10 @@ where
             let prior_provisional_state = provisional_state.clone();
 
             #[cfg(feature = "tree_index")]
-            let old_committer_leaf = prior_provisional_state
+            let old_committer_leaf = provisional_state
                 .public_tree
-                .get_leaf_node(provisional_private_tree.self_index)?;
+                .get_leaf_node(provisional_private_tree.self_index)?
+                .clone();
 
             let updated_leaf_properties =
                 if let Some(new_leaf_node_capabilities) = new_leaf_node_capabilities {
@@ -698,7 +700,7 @@ where
                 None,
                 &provisional_state.group_context, // unused
             )
-            .await?;
+                .await?;
 
             provisional_state
                 .public_tree
@@ -707,7 +709,7 @@ where
                     &provisional_state.group_context.extensions,
                     provisional_private_tree.self_index,
                     #[cfg(feature = "tree_index")]
-                    old_committer_leaf,
+                    &old_committer_leaf,
                     #[cfg(test)]
                     !self.commit_modifiers.skip_committer_self_update_validation,
                 )
@@ -722,7 +724,7 @@ where
                 None,
                 &provisional_state.group_context, // unused
             )
-            .await?;
+                .await?;
 
             (
                 Some(encap_gen.update_path),
@@ -1766,10 +1768,7 @@ mod tests {
     #[maybe_async::test(not(mls_build_async), async(mls_build_async, crate::futures_test))]
     async fn member_identity_is_validated_against_new_extensions() {
         let alice = client_with_test_extension(b"alice").await;
-        let mut alice = alice
-            .create_group(ExtensionList::new(), Default::default(), None)
-            .await
-            .unwrap();
+        let mut alice = alice.group_builder().unwrap().build().await.unwrap();
 
         let bob = client_with_test_extension(b"bob").await;
         let bob_kp = bob
@@ -1813,10 +1812,7 @@ mod tests {
     #[maybe_async::test(not(mls_build_async), async(mls_build_async, crate::futures_test))]
     async fn server_identity_is_validated_against_new_extensions() {
         let alice = client_with_test_extension(b"alice").await;
-        let mut alice = alice
-            .create_group(ExtensionList::new(), Default::default(), None)
-            .await
-            .unwrap();
+        let mut alice = alice.group_builder().unwrap().build().await.unwrap();
 
         let mut extension_list = ExtensionList::new();
         let extension = TestExtension { foo: b'a' };

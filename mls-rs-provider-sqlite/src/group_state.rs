@@ -163,7 +163,12 @@ impl SqLiteGroupStateStorage {
             transaction
                 .execute(
                     "INSERT INTO epoch (group_id, epoch_id, epoch_data) VALUES (?, ?, ?)",
-                    params![group_id, epoch.id, &*epoch.data],
+                    params![
+                        group_id,
+                        i64::try_from(epoch.id)
+                            .map_err(|_| SqLiteDataStorageError::EpochIdOverflow(epoch.id))?,
+                        &*epoch.data
+                    ],
                 )
                 .map(|_| ())
                 .map_err(|e| SqLiteDataStorageError::SqlEngineError(e.into()))?;
@@ -174,7 +179,12 @@ impl SqLiteGroupStateStorage {
             transaction
                 .execute(
                     "UPDATE epoch SET epoch_data = ? WHERE group_id = ? AND epoch_id = ?",
-                    params![&*epoch.data, group_id, epoch.id],
+                    params![
+                        &*epoch.data,
+                        group_id,
+                        i64::try_from(epoch.id)
+                            .map_err(|_| SqLiteDataStorageError::EpochIdOverflow(epoch.id))?
+                    ],
                 )
                 .map(|_| ())
                 .map_err(|e| SqLiteDataStorageError::SqlEngineError(e.into()))

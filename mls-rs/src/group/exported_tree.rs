@@ -46,6 +46,7 @@ impl<'a> ExportedTree<'a> {
             public_tree: &self.0,
         }
     }
+
     pub fn members_iter(&'a self) -> impl Iterator<Item = Member> + 'a {
         self.0
             .non_empty_leaves()
@@ -117,6 +118,8 @@ impl<'a> ExportedTree<'a> {
 
         Ok(leaf)
     }
+
+
 }
 
 impl ExportedTree<'static> {

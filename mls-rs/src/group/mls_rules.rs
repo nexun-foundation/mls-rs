@@ -2,6 +2,8 @@
 // Copyright by contributors to this project.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+use alloc::vec::Vec;
+
 use crate::group::{proposal_filter::ProposalBundle, Roster};
 
 #[cfg(feature = "private_message")]
@@ -17,7 +19,11 @@ use super::GroupContext;
 use crate::LeafNode;
 use alloc::boxed::Box;
 use core::convert::Infallible;
-use mls_rs_core::error::IntoAnyError;
+use mls_rs_core::{
+    error::IntoAnyError,
+    group::{Member, ProposalType},
+    identity::SigningIdentity,
+};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum CommitDirection {
@@ -188,6 +194,23 @@ pub trait MlsRules: Send + Sync {
         current_context: &GroupContext,
     ) -> Result<EncryptionOptions, Self::Error>;
 
+    /// Returns whether a commit containing a custom proposal of the given type must include an
+    /// update path.
+    ///
+    /// Per RFC 9420 §12.4, a proposal type "requires a path" when it changes group membership in a
+    /// way that needs the forward secrecy and post-compromise security guarantees an UpdatePath
+    /// provides. The standard proposal types that do *not* require a path are Add, PSK, and
+    /// ReInit. For custom proposal types, this method lets the application decide.
+    ///
+    /// This is called during commit creation and validation for every custom proposal in the
+    /// commit. If any custom proposal returns `true`, a generated commit will include, or
+    /// a received commit will require an update path.
+    ///
+    /// The default implementation returns `true` (conservative: always require a path).
+    fn custom_proposal_requires_update_path(&self, _custom_proposal_type: ProposalType) -> bool {
+        true
+    }
+
     #[cfg(feature = "application_data")]
     /// The list of components supported by the application. If a commit contains an [ApplicationDataProposal](crate::group::proposal::ApplicationDataProposal) or an [ApplicationDataUpdateProposal](crate::group::proposal::ApplicationDataUpdateProposal)
     /// referring to a [ComponentId] not in the list, then the commit will be rejected
@@ -217,6 +240,7 @@ pub trait MlsRules: Send + Sync {
 
 macro_rules! delegate_mls_rules {
     ($implementer:ty) => {
+        #[cfg_attr(coverage_nightly, coverage(off))]
         #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
         #[cfg_attr(mls_build_async, maybe_async::must_be_async)]
         impl<T: MlsRules + ?Sized> MlsRules for $implementer {
@@ -253,6 +277,13 @@ macro_rules! delegate_mls_rules {
                 (**self).encryption_options(roster, context)
             }
 
+            fn custom_proposal_requires_update_path(
+                &self,
+                custom_proposal_type: ProposalType,
+            ) -> bool {
+                (**self).custom_proposal_requires_update_path(custom_proposal_type)
+            }
+
             #[cfg(feature = "application_data")]
             #[cfg_attr(mls_build_async, maybe_async::must_be_async)]
             async fn update_components(
@@ -279,6 +310,7 @@ delegate_mls_rules!(&T);
 pub struct DefaultMlsRules {
     pub commit_options: CommitOptions,
     pub encryption_options: EncryptionOptions,
+    pub custom_proposals_that_require_update_path: Vec<ProposalType>,
 }
 
 impl DefaultMlsRules {
@@ -292,15 +324,25 @@ impl DefaultMlsRules {
     pub fn with_commit_options(self, commit_options: CommitOptions) -> Self {
         Self {
             commit_options,
-            encryption_options: self.encryption_options,
+            ..self
         }
     }
 
     /// Set encryption options.
     pub fn with_encryption_options(self, encryption_options: EncryptionOptions) -> Self {
         Self {
-            commit_options: self.commit_options,
             encryption_options,
+            ..self
+        }
+    }
+
+    pub fn with_custom_proposals_that_require_update_path(
+        self,
+        custom_proposals_that_require_update_path: Vec<ProposalType>,
+    ) -> Self {
+        Self {
+            custom_proposals_that_require_update_path,
+            ..self
         }
     }
 }
@@ -336,6 +378,11 @@ impl MlsRules for DefaultMlsRules {
         _: &GroupContext,
     ) -> Result<EncryptionOptions, Self::Error> {
         Ok(self.encryption_options)
+    }
+
+    fn custom_proposal_requires_update_path(&self, custom_proposal_type: ProposalType) -> bool {
+        self.custom_proposals_that_require_update_path
+            .contains(&custom_proposal_type)
     }
 
     #[cfg(feature = "application_data")]
