@@ -118,8 +118,6 @@ impl<'a> ExportedTree<'a> {
 
         Ok(leaf)
     }
-
-
 }
 
 impl ExportedTree<'static> {

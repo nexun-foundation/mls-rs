@@ -2,7 +2,7 @@ use crate::client::MlsError;
 use alloc::vec::Vec;
 use mls_rs_codec::{MlsEncode, MlsSize};
 
-pub type ComponentID = u32;
+pub type ComponentID = u16;
 
 #[derive(Clone, Debug, PartialEq, MlsSize, MlsEncode)]
 pub struct ComponentOperationLabel<'a> {
@@ -12,7 +12,7 @@ pub struct ComponentOperationLabel<'a> {
 }
 
 impl<'a> ComponentOperationLabel<'a> {
-    pub fn new(component_id: u32, context: &'a [u8]) -> Self {
+    pub fn new(component_id: u16, context: &'a [u8]) -> Self {
         Self {
             label: b"MLS 1.0 Application",
             component_id,

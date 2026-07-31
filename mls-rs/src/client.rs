@@ -578,11 +578,11 @@ where
     /// signing identity, and signer. Use the builder's `with_*` methods to
     /// customize the group before calling [`GroupBuilder::build`].
     pub fn group_builder(&self) -> Result<GroupBuilder<C>, MlsError> {
-        let (signing_identity, cipher_suite) = self.signing_identity()?;
+        let signing_identity = self.signing_identity()?;
 
         Ok(GroupBuilder::new(
             self.config.clone(),
-            cipher_suite,
+            self.ciphersuite,
             signing_identity.clone(),
             self.signer()?.clone(),
         ))
@@ -606,7 +606,6 @@ where
         leaf_node_extensions: ExtensionList,
         timestamp: Option<MlsTime>,
     ) -> Result<Group<C>, MlsError> {
-        // FIXME(jsp): pass signing identity
         let mut builder = self
             .group_builder()?
             .with_group_id(group_id)
@@ -618,29 +617,6 @@ where
         }
 
         builder.build().await
-    }
-
-    /// Allow supplying custom SigningIdentity
-    #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-    pub async fn create_group_with(
-        &self,
-        group_id: Vec<u8>,
-        group_context_extensions: ExtensionList,
-        leaf_node_extensions: ExtensionList,
-        signing_identity: &SigningIdentity,
-    ) -> Result<Group<C>, MlsError> {
-        Group::new(
-            self.config.clone(),
-            Some(group_id),
-            self.ciphersuite,
-            self.version,
-            signing_identity.clone(),
-            group_context_extensions,
-            leaf_node_extensions,
-            self.signer()?.clone(),
-            None,
-        )
-        .await
     }
 
     /// Create an MLS group with a random group ID.

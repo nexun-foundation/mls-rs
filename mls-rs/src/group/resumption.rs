@@ -21,9 +21,9 @@ use crate::{client::MlsError, tree_kem::TreeKemPublic, Client, Group, MlsMessage
 use crate::{group::Roster, time::MlsTime};
 
 use super::{
-    builder::GroupBuilder, proposal::ReInitProposal, ClientConfig, CommitOutput, ExportedTree, JustPreSharedKeyID,
-    MessageProcessor, NewMemberInfo, PreSharedKeyID, PskGroupId, PskSecretInput,
-    ResumptionPSKUsage, ResumptionPsk,
+    builder::GroupBuilder, proposal::ReInitProposal, ClientConfig, ExportedTree,
+    JustPreSharedKeyID, MessageProcessor, NewMemberInfo, PreSharedKeyID, PskGroupId,
+    PskSecretInput, ResumptionPSKUsage, ResumptionPsk,
 };
 use crate::framing::Sender;
 
@@ -189,7 +189,7 @@ impl<C: ClientConfig + Clone> ReinitClient<C> {
         let mut builder = GroupBuilder::new(
             self.client.config,
             self.reinit.cipher_suite,
-            self.client.signing_identity.unwrap().0,
+            self.client.signing_identity.unwrap(),
             self.client.signer.unwrap(),
         )
         .with_group_id(self.reinit.group_id)
@@ -287,7 +287,7 @@ impl<C: ClientConfig + Clone> ResumptionGroupBuilder<C> {
 
         check_that_subgroup_is_a_subset(old_roster, &group, self.typ).await?;
 
-        Ok((group, commit))
+        Ok((group, commit.welcome_messages))
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]

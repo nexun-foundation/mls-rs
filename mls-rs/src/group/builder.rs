@@ -55,7 +55,7 @@ impl<C> GroupBuilder<C> {
     ///
     /// Most callers should use [`Client::group_builder`](crate::Client::group_builder) instead,
     /// which fills these from the client's configuration.
-    pub(crate) fn new(
+    pub fn new(
         config: C,
         cipher_suite: CipherSuite,
         signing_identity: SigningIdentity,

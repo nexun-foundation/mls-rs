@@ -83,20 +83,6 @@ async fn generate_default_client(id: usize) -> Client<impl MlsConfig> {
 }
 
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-async fn generate_default_client(id: usize) -> Client<impl MlsConfig> {
-    mls_rs::test_utils::generate_basic_client(
-        TestCryptoProvider::all_supported_cipher_suites()[0],
-        ProtocolVersion::MLS_10,
-        id,
-        None,
-        false,
-        &TestCryptoProvider::default(),
-        None,
-    )
-    .await
-}
-
-#[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
 pub async fn get_test_groups(
     version: ProtocolVersion,
     cipher_suite: CipherSuite,
@@ -109,19 +95,6 @@ pub async fn get_test_groups(
         num_participants,
         None,
         encrypt_controls,
-        &TestCryptoProvider::default(),
-    )
-    .await
-}
-
-#[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-pub async fn get_default_test_groups(num_participants: usize) -> Vec<Group<impl MlsConfig>> {
-    mls_rs::test_utils::get_test_groups(
-        ProtocolVersion::MLS_10,
-        TestCryptoProvider::all_supported_cipher_suites()[0],
-        num_participants,
-        None,
-        false,
         &TestCryptoProvider::default(),
     )
     .await
@@ -770,10 +743,7 @@ async fn reinit_works() {
         .commit(vec![kp], Default::default(), None)
         .await
         .unwrap();
-    let (mut bob_group, _) = bob2
-        .join(&commit_output.welcome_messages[0], None, None)
-        .await
-        .unwrap();
+    let (mut bob_group, _) = bob2.join(&commit_output[0], None, None).await.unwrap();
 
     assert!(bob_group.cipher_suite() == suite2);
 

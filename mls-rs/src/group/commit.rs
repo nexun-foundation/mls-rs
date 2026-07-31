@@ -700,7 +700,7 @@ where
                 None,
                 &provisional_state.group_context, // unused
             )
-                .await?;
+            .await?;
 
             provisional_state
                 .public_tree
@@ -724,7 +724,7 @@ where
                 None,
                 &provisional_state.group_context, // unused
             )
-                .await?;
+            .await?;
 
             (
                 Some(encap_gen.update_path),
