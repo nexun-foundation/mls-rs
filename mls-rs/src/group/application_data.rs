@@ -60,4 +60,4 @@ impl fmt::Debug for ComponentData {
     }
 }
 
-pub type ComponentId = u32;
+pub type ComponentId = u16;

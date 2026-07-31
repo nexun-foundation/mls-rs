@@ -180,7 +180,6 @@ pub(crate) mod inner {
             };
 
             let welcome = commit_output
-                .welcome_messages
                 .first()
                 .map(|msg| msg.to_bytes())
                 .transpose()

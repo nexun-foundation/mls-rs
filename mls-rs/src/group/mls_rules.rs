@@ -14,11 +14,7 @@ use crate::{
 
 use alloc::boxed::Box;
 use core::convert::Infallible;
-use mls_rs_core::{
-    error::IntoAnyError,
-    group::{Member, ProposalType},
-    identity::SigningIdentity,
-};
+use mls_rs_core::{error::IntoAnyError, group::ProposalType};
 
 use super::GroupContext;
 use crate::LeafNode;

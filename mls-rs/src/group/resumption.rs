@@ -188,7 +188,7 @@ impl<C: ClientConfig + Clone> ReinitClient<C> {
         let mut builder = GroupBuilder::new(
             self.client.config,
             self.reinit.cipher_suite,
-            self.client.signing_identity.unwrap().0,
+            self.client.signing_identity.unwrap(),
             self.client.signer.unwrap(),
         )
         .with_group_id(self.reinit.group_id)

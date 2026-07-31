@@ -576,11 +576,11 @@ where
     /// signing identity, and signer. Use the builder's `with_*` methods to
     /// customize the group before calling [`GroupBuilder::build`].
     pub fn group_builder(&self) -> Result<GroupBuilder<C>, MlsError> {
-        let (signing_identity, cipher_suite) = self.signing_identity()?;
+        let signing_identity = self.signing_identity()?;
 
         Ok(GroupBuilder::new(
             self.config.clone(),
-            cipher_suite,
+            self.ciphersuite,
             signing_identity.clone(),
             self.signer()?.clone(),
         ))

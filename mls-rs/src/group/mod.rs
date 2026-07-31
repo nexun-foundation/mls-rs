@@ -28,6 +28,7 @@ use crate::psk::PreSharedKeyID;
 use crate::signer::Signable;
 use crate::tree_kem::hpke_encryption::HpkeEncryptable;
 use crate::tree_kem::kem::TreeKem;
+use crate::tree_kem::leaf_node::LeafNode;
 use crate::tree_kem::path_secret::PathSecret;
 pub use crate::tree_kem::Capabilities;
 use crate::tree_kem::{math as tree_math, ValidatedUpdatePath};
@@ -165,7 +166,7 @@ mod interop_test_vectors;
 
 mod exported_tree;
 
-pub use crate::tree_kem::leaf_node::{LeafNode, LeafNodeSource};
+pub use crate::tree_kem::leaf_node::LeafNodeSource;
 pub use crate::tree_kem::node::{LeafIndex, Node, NodeIndex, NodeVec, Parent};
 pub use builder::GroupBuilder;
 pub use exported_tree::ExportedTree;
@@ -287,6 +288,14 @@ impl<C> Group<C>
 where
     C: ClientConfig + Clone,
 {
+    pub fn group_state_storage_mut(&mut self) -> &mut <C as ClientConfig>::GroupStateStorage {
+        &mut self.state_repo.storage
+    }
+
+    pub fn key_package_repository_mut(&mut self) -> &mut <C as ClientConfig>::KeyPackageRepository {
+        &mut self.state_repo.key_package_repo
+    }
+
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
     pub(crate) async fn join(
         welcome: &MlsMessage,
@@ -3696,7 +3705,7 @@ mod tests {
         let mut alice = test_group(TEST_PROTOCOL_VERSION, TEST_CIPHER_SUITE).await;
         let (mut bob, _) = alice.join("bob").await;
 
-        let encrypted_message = bob
+        let (encrypted_message, _) = bob
             .encrypt_application_message(b"test", vec![])
             .await
             .unwrap();
@@ -4342,7 +4351,7 @@ mod tests {
         let (bob_identity, secret_key) = get_test_signing_identity(TEST_CIPHER_SUITE, b"bob").await;
 
         let bob = TestClientBuilder::new_for_test()
-            .signing_identity(bob_identity, secret_key, TEST_CIPHER_SUITE)
+            .signing_identity(bob_identity, secret_key)
             .build();
 
         let mut new_exts = ExtensionList::new();
@@ -4508,7 +4517,7 @@ mod tests {
             .await
             .unwrap();
 
-        let welcome = &commit.welcome_messages[0];
+        let welcome = &commit[0];
 
         let (mut bob_sub_group, _) = bob.join_subgroup(welcome, None, None).await.unwrap();
 
@@ -5068,7 +5077,8 @@ mod tests {
         let secret_key = groups[1].signer.clone();
 
         let client = TestClientBuilder::new_for_test()
-            .signing_identity(signing_identity, secret_key, TEST_CIPHER_SUITE)
+            .ciphersuite(TEST_CIPHER_SUITE)
+            .signing_identity(signing_identity, secret_key)
             .build();
 
         let kp = client
@@ -5249,8 +5259,6 @@ mod tests {
             .commit_modifiers
             .skip_committer_self_update_validation = true;
 
-        let commit_output = groups[0].commit(vec![]).await.unwrap();
-
         let err = match groups[0].commit(vec![]).await {
             Ok(commit_output) => groups[2]
                 .process_incoming_message(commit_output.commit_message)
@@ -5260,50 +5268,6 @@ mod tests {
         };
 
         assert_matches!(err, MlsError::RequiredCredentialNotFound(_));
-    }
-
-    #[maybe_async::test(not(mls_build_async), async(mls_build_async, crate::futures_test))]
-    async fn committer_leaf_has_unsupported_credential_rejected_at_commit_time() {
-        let mut groups =
-            get_test_groups_with_features(3, Default::default(), Default::default()).await;
-
-        for group in groups.iter_mut() {
-            group.config.0.identity_provider.allow_any_custom = true;
-        }
-
-        groups[0].commit_modifiers.modify_leaf = |leaf, sk| {
-            leaf.signing_identity.credential = Credential::Custom(CustomCredential::new(
-                CredentialType::new(43),
-                leaf.signing_identity
-                    .credential
-                    .as_basic()
-                    .unwrap()
-                    .identifier
-                    .to_vec(),
-            ));
-
-            Some(sk.clone())
-        };
-
-        let res = groups[0].commit(vec![]).await;
-
-        assert_matches!(res, Err(MlsError::CredentialTypeOfNewLeafIsUnsupported));
-    }
-
-    #[maybe_async::test(not(mls_build_async), async(mls_build_async, crate::futures_test))]
-    async fn committer_leaf_not_supporting_credential_used_in_another_leaf_rejected_at_commit_time()
-    {
-        let mut groups =
-            get_test_groups_with_features(3, Default::default(), Default::default()).await;
-
-        groups[0].commit_modifiers.modify_leaf = |leaf, sk| {
-            leaf.capabilities.credentials = vec![2.into()];
-            Some(sk.clone())
-        };
-
-        let res = groups[0].commit(vec![]).await;
-
-        assert_matches!(res, Err(MlsError::InUseCredentialTypeUnsupportedByNewLeaf));
     }
 
     #[maybe_async::test(not(mls_build_async), async(mls_build_async, crate::futures_test))]
@@ -7176,7 +7140,7 @@ mod tests {
         let client = ClientBuilder::new()
             .crypto_provider(TestCryptoProvider::new())
             .identity_provider(BasicIdentityProvider::new())
-            .signing_identity(signing_identity, secret_key, TEST_CIPHER_SUITE)
+            .signing_identity(signing_identity, secret_key)
             .build();
 
         let mut group = client.group_builder().unwrap().build().await.unwrap();

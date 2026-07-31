@@ -679,6 +679,17 @@ where
             )
             .await?;
 
+            validate_update_path(
+                &self.identity_provider(),
+                self.cipher_suite_provider(),
+                encap_gen.update_path.clone(),
+                &prior_provisional_state,
+                LeafIndex::try_from(*self.private_tree.self_index)?,
+                None,
+                &provisional_state.group_context, // unused
+            )
+            .await?;
+
             provisional_state
                 .public_tree
                 .update_committer_leaf(
@@ -691,6 +702,17 @@ where
                     !self.commit_modifiers.skip_committer_self_update_validation,
                 )
                 .await?;
+
+            validate_update_path(
+                &self.identity_provider(),
+                self.cipher_suite_provider(),
+                encap_gen.update_path.clone(),
+                &prior_provisional_state,
+                LeafIndex::try_from(*self.private_tree.self_index)?,
+                None,
+                &provisional_state.group_context, // unused
+            )
+            .await?;
 
             (
                 Some(encap_gen.update_path),
