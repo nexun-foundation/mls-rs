@@ -143,7 +143,10 @@ impl Content {
     pub fn as_commit(&self) -> Option<&Commit> {
         match self {
             Content::Commit(commit) => Some(commit),
-            Content::Application(_) | Content::Proposal(_) => None,
+            #[cfg(feature = "by_ref_proposal")]
+            Content::Proposal(_) => None,
+            #[cfg(feature = "private_message")]
+            Content::Application(_) => None,
         }
     }
 }

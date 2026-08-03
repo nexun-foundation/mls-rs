@@ -174,6 +174,8 @@ pub use builder::GroupBuilder;
 pub use exported_tree::ExportedTree;
 #[cfg(feature = "prior_epoch")]
 pub use state_repo::{CoreGroupStateStorage, GroupWriteContext};
+#[cfg(not(feature = "prior_epoch"))]
+pub use state_repo::{CoreGroupStateStorage, GroupWriteContext};
 
 #[derive(Clone, Debug, PartialEq, MlsSize, MlsEncode, MlsDecode)]
 struct GroupSecrets {

@@ -58,6 +58,7 @@ impl Snapshot {
             private_tree: &self.private_tree,
             epoch_secrets: &self.epoch_secrets,
             key_schedule: &self.key_schedule,
+            #[cfg(feature = "by_ref_proposal")]
             pending_updates: &self.pending_updates,
             pending_commit_snapshot: &self.pending_commit_snapshot,
             signer: &self.signer,
@@ -86,6 +87,7 @@ impl SnapshotRef<'_> {
             private_tree: self.private_tree.clone(),
             epoch_secrets: self.epoch_secrets.clone(),
             key_schedule: self.key_schedule.clone(),
+            #[cfg(feature = "by_ref_proposal")]
             pending_updates: self.pending_updates.clone(),
             pending_commit_snapshot: self.pending_commit_snapshot.clone(),
             signer: self.signer.clone(),

@@ -5,20 +5,20 @@
 use crate::client::MlsError;
 use crate::key_package::KeyPackageRef;
 
+use super::snapshot::{Snapshot, SnapshotRef};
 use alloc::vec::Vec;
-use mls_rs_codec::MlsEncode;
+use mls_rs_codec::{MlsDecode, MlsEncode};
+use mls_rs_core::group::EpochRecord;
 use mls_rs_core::{
     error::IntoAnyError,
     group::{GroupState, GroupStateStorage},
     key_package::KeyPackageStorage,
 };
 
-use super::snapshot::Snapshot;
-
 #[derive(Debug, Clone)]
 pub(crate) struct GroupStateRepository<S, K>
 where
-    S: GroupStateStorage,
+    S: CoreGroupStateStorage,
     K: KeyPackageStorage,
 {
     pending_key_package_removal: Option<KeyPackageRef>,
@@ -28,7 +28,7 @@ where
 
 impl<S, K> GroupStateRepository<S, K>
 where
-    S: GroupStateStorage,
+    S: CoreGroupStateStorage,
     K: KeyPackageStorage,
 {
     pub fn new(
@@ -45,15 +45,13 @@ where
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-    pub async fn write_to_storage(&mut self, group_snapshot: Snapshot) -> Result<usize, MlsError> {
-        let group_state = GroupState {
-            data: group_snapshot.mls_encode_to_vec()?.into(),
-            id: group_snapshot.state.context.group_id,
-        };
-
-        let bytes = group_state.data.len();
+    pub async fn write_to_storage(
+        &mut self,
+        group_snapshot: SnapshotRef,
+        ctx: GroupWriteContext,
+    ) -> Result<usize, MlsError> {
         self.storage
-            .write(group_state, Vec::new(), Vec::new())
+            .write_inner(group_snapshot, ctx)
             .await
             .map_err(|e| MlsError::GroupStorageError(e.into_any_error()))?;
 
@@ -64,7 +62,72 @@ where
                 .map_err(|e| MlsError::KeyPackageRepoError(e.into_any_error()))?;
         }
 
+        let bytes = 0; // number of bytes written to storage, we cannot use it anymore since the serialization happens by the consumer
         Ok(bytes)
+    }
+}
+
+#[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
+#[cfg_attr(mls_build_async, maybe_async::must_be_async)]
+pub trait CoreGroupStateStorage: GroupStateStorage + Send + Sync {
+    async fn state_inner(&self, group_id: &[u8]) -> Result<Option<Snapshot>, MlsError> {
+        Ok(self
+            .state(group_id)
+            .await
+            .map_err(|e| MlsError::GroupStorageError(e.into_any_error()))?
+            .map(|s| Snapshot::mls_decode(&mut s.as_slice()))
+            .transpose()?)
+    }
+
+    async fn write_inner(
+        &mut self,
+        state: SnapshotRef<'_>,
+        _ctx: GroupWriteContext,
+    ) -> Result<(), MlsError> {
+        let group_state = GroupState {
+            id: state.state.context.group_id.clone(),
+            data: state.into_owned().mls_encode_to_vec()?.into(),
+        };
+        self.write(group_state, vec![], vec![])
+            .await
+            .map_err(|e| MlsError::GroupStorageError(e.into_any_error()))
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct GroupWriteContext {
+    pub group_epoch: Option<u64>,
+    pub proposals_modified: bool,
+    pub own_proposals_modified: bool,
+    pub participants_modified: bool,
+    pub group_context_extensions_modified: bool,
+    pub ratchet_tree_modified: bool,
+    pub private_tree_modified: bool,
+    pub epoch_secrets_modified: bool,
+    pub key_schedule_modified: bool,
+    pub pending_update_modified: bool,
+    pub pending_commit_modified: bool,
+    pub signer_modified: bool,
+    pub state_modified: bool,
+}
+
+impl Default for GroupWriteContext {
+    fn default() -> Self {
+        Self {
+            group_epoch: None,
+            proposals_modified: true,
+            ratchet_tree_modified: true,
+            own_proposals_modified: true,
+            participants_modified: true,
+            group_context_extensions_modified: true,
+            private_tree_modified: true,
+            epoch_secrets_modified: true,
+            key_schedule_modified: true,
+            pending_update_modified: true,
+            pending_commit_modified: true,
+            signer_modified: true,
+            state_modified: true,
+        }
     }
 }
 
@@ -98,7 +161,7 @@ mod tests {
         .unwrap();
 
         test_repo
-            .write_to_storage(test_snapshot(0).await)
+            .write_to_storage(test_snapshot(0).await.to_ref(), Default::default())
             .await
             .unwrap();
 
@@ -126,7 +189,9 @@ mod tests {
 
         repo.key_package_repo.get(&key_package.reference).unwrap();
 
-        repo.write_to_storage(test_snapshot(4).await).await.unwrap();
+        repo.write_to_storage(test_snapshot(4).await.to_ref(), Default::default())
+            .await
+            .unwrap();
 
         assert!(repo.key_package_repo.get(&key_package.reference).is_none());
     }
