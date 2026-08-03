@@ -7034,7 +7034,7 @@ mod tests {
         let storage = group.config.group_state_storage().inner;
 
         group.write_to_storage(Default::default()).await.unwrap();
-        let snapshot_with_tree = storage.lock().unwrap().drain().next().unwrap().1;
+        let _snapshot_with_tree = storage.lock().unwrap().drain().next().unwrap().1;
 
         group
             .write_to_storage(GroupWriteContext {
@@ -7043,10 +7043,10 @@ mod tests {
             })
             .await
             .unwrap();
-        let snapshot_without_tree = storage.lock().unwrap().iter().next().unwrap().1.clone();
+        let _snapshot_without_tree = storage.lock().unwrap().iter().next().unwrap().1.clone();
 
-        let tree = group.state.public_tree.nodes.mls_encode_to_vec().unwrap();
-        let empty_tree = Vec::<u8>::new().mls_encode_to_vec().unwrap();
+        let _tree = group.state.public_tree.nodes.mls_encode_to_vec().unwrap();
+        let _empty_tree = Vec::<u8>::new().mls_encode_to_vec().unwrap();
 
         // we do not anymore return the written bytes
         /*assert_eq!(
