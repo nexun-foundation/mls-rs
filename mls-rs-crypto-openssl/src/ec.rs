@@ -152,6 +152,7 @@ fn private_key_from_bytes_nist(
     let mut pk_val = EcPoint::new(&group)?;
 
     if with_public {
+        #[allow(deprecated)]
         pk_val.mul_generator(&group, &sk_val, &ctx)?;
     }
 
@@ -454,7 +455,7 @@ mod tests {
             {
                 println!(
                     "Mismatched curve public key import : key curve {:?}, import curve {:?}",
-                    &curve, &other_curve
+                    curve, other_curve
                 );
 
                 let public_key = get_test_public_keys().get_key_from_curve(curve);

@@ -370,7 +370,7 @@ impl<C: IntoConfig> ClientBuilder<C> {
         group_state_storage: G,
     ) -> ClientBuilder<WithGroupStateStorage<G, C>>
     where
-        G: GroupStateStorage,
+        G: CoreGroupStateStorage,
     {
         let Config(c) = self.0.into_config();
 
@@ -518,7 +518,7 @@ impl<C: IntoConfig> ClientBuilder<C>
 where
     C::KeyPackageRepository: KeyPackageStorage + Clone,
     C::PskStore: PreSharedKeyStorage + Clone,
-    C::GroupStateStorage: GroupStateStorage + Clone,
+    C::GroupStateStorage: CoreGroupStateStorage + Clone,
     C::IdentityProvider: IdentityProvider + Clone,
     C::MlsRules: MlsRules + Clone,
     C::CryptoProvider: CryptoProvider + Clone,
@@ -661,7 +661,7 @@ impl<Kpr, Ps, Gss, Ip, Pr, Cp> ClientConfig for ConfigInner<Kpr, Ps, Gss, Ip, Pr
 where
     Kpr: KeyPackageStorage + Clone,
     Ps: PreSharedKeyStorage + Clone,
-    Gss: GroupStateStorage + Clone,
+    Gss: CoreGroupStateStorage + Clone,
     Ip: IdentityProvider + Clone,
     Pr: MlsRules + Clone,
     Cp: CryptoProvider + Clone,
@@ -742,7 +742,7 @@ where
     Kpr: KeyPackageStorage + Clone,
 
     Ps: PreSharedKeyStorage + Clone,
-    Gss: GroupStateStorage + Clone,
+    Gss: CoreGroupStateStorage + Clone,
     Ip: IdentityProvider + Clone,
     Pr: MlsRules + Clone,
     Cp: CryptoProvider + Clone,
@@ -944,9 +944,9 @@ mod private {
     }
 }
 
+use crate::group::state_repo::CoreGroupStateStorage;
 use mls_rs_core::{
     crypto::{CryptoProvider, SignatureSecretKey},
-    group::GroupStateStorage,
     identity::IdentityProvider,
     key_package::KeyPackageStorage,
     psk::PreSharedKeyStorage,

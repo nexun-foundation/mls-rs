@@ -970,6 +970,12 @@ where
                 is_external: matches!(auth_content.content.sender, Sender::NewMemberCommit),
                 authenticated_data: auth_content.content.authenticated_data,
                 committer: *provisional_private_tree.self_index,
+                has_update_path: auth_content
+                    .content
+                    .content
+                    .as_commit()
+                    .map(|c| c.path.is_some())
+                    .unwrap_or_default(),
                 effect: match pending_reinit {
                     Some(r) => CommitEffect::ReInit(r.clone()),
                     None => CommitEffect::NewEpoch(

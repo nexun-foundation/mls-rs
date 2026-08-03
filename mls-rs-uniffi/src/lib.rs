@@ -31,6 +31,7 @@ use tokio::sync::Mutex;
 
 use mls_rs::error::{IntoAnyError, MlsError};
 use mls_rs::group;
+use mls_rs::group::GroupWriteContext;
 use mls_rs::identity::basic;
 use mls_rs::mls_rules;
 use mls_rs::{CipherSuiteProvider, CryptoProvider};
@@ -602,7 +603,11 @@ impl Group {
     /// Returns the amount of bytes written to storage
     pub async fn write_to_storage(&self) -> Result<u32, Error> {
         let mut group = self.inner().await;
-        let size = group.write_to_storage().await.map_err(Error::from)?;
+        let ctx = GroupWriteContext {
+            ratchet_tree_modified: true,
+            ..Default::default()
+        };
+        let size = group.write_to_storage(ctx).await.map_err(Error::from)?;
         Ok(size as u32)
     }
 

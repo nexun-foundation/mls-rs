@@ -1,6 +1,9 @@
 use std::fmt::Debug;
 use std::sync::Arc;
 
+use self::group_state::{GroupStateStorage, GroupStateStorageAdapter};
+use crate::Error;
+use mls_rs::group::CoreGroupStateStorage;
 use mls_rs::{
     client_builder::{self, WithGroupStateStorage},
     identity::basic,
@@ -9,13 +12,12 @@ use mls_rs::{
 use mls_rs_crypto_openssl::OpensslCryptoProvider;
 use zeroize::Zeroizing;
 
-use self::group_state::{GroupStateStorage, GroupStateStorageAdapter};
-use crate::Error;
-
 pub mod group_state;
 
 #[derive(Debug, Clone)]
 pub(crate) struct ClientGroupStorage(Arc<dyn GroupStateStorage>);
+
+impl CoreGroupStateStorage for ClientGroupStorage {}
 
 impl From<Arc<dyn GroupStateStorage>> for ClientGroupStorage {
     fn from(value: Arc<dyn GroupStateStorage>) -> Self {
