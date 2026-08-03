@@ -47,7 +47,7 @@ where
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
     pub async fn write_to_storage(
         &mut self,
-        group_snapshot: SnapshotRef,
+        group_snapshot: SnapshotRef<'_>,
         ctx: GroupWriteContext,
     ) -> Result<usize, MlsError> {
         self.storage
