@@ -6,22 +6,22 @@ use alloc::vec::Vec;
 use mls_rs_core::{
     crypto::CipherSuiteProvider,
     error::IntoAnyError,
-    group::GroupStateStorage,
     key_package::KeyPackageStorage,
     psk::{ExternalPskId, PreSharedKey, PreSharedKeyStorage},
 };
 
+use super::{secret::PskSecretInput, JustPreSharedKeyID, PreSharedKeyID, ResumptionPsk};
 use crate::{
     client::MlsError,
-    group::{epoch::EpochSecrets, state_repo::GroupStateRepository, GroupContext},
+    group::{
+        epoch::EpochSecrets, state_repo::GroupStateRepository, CoreGroupStateStorage, GroupContext,
+    },
     psk::secret::PskSecret,
 };
 
-use super::{secret::PskSecretInput, JustPreSharedKeyID, PreSharedKeyID, ResumptionPsk};
-
 pub(crate) struct PskResolver<'a, GS, K, PS>
 where
-    GS: GroupStateStorage,
+    GS: CoreGroupStateStorage,
     PS: PreSharedKeyStorage,
     K: KeyPackageStorage,
 {
@@ -31,7 +31,7 @@ where
     pub psk_store: &'a PS,
 }
 
-impl<GS: GroupStateStorage, K: KeyPackageStorage, PS: PreSharedKeyStorage>
+impl<GS: CoreGroupStateStorage, K: KeyPackageStorage, PS: PreSharedKeyStorage>
     PskResolver<'_, GS, K, PS>
 {
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]

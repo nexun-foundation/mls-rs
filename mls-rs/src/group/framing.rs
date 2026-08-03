@@ -139,6 +139,16 @@ impl Content {
     pub fn content_type(&self) -> ContentType {
         self.into()
     }
+
+    pub fn as_commit(&self) -> Option<&Commit> {
+        match self {
+            Content::Commit(commit) => Some(commit),
+            #[cfg(feature = "by_ref_proposal")]
+            Content::Proposal(_) => None,
+            #[cfg(feature = "private_message")]
+            Content::Application(_) => None,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]

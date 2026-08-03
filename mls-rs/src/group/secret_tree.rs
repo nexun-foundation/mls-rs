@@ -39,7 +39,7 @@ impl SecretTreeNode {
 
 #[derive(Clone, PartialEq, MlsEncode, MlsDecode, MlsSize)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-struct TreeSecret(
+pub struct TreeSecret(
     #[mls_codec(with = "mls_rs_codec::byte_vec")]
     #[cfg_attr(feature = "serde", serde(with = "mls_rs_core::zeroizing_serde"))]
     Zeroizing<Vec<u8>>,
@@ -112,6 +112,10 @@ impl<T: TreeIndex> SecretTree<T> {
             known_secrets: Default::default(),
             leaf_count: T::zero(),
         }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.known_secrets.inner.is_empty()
     }
 }
 

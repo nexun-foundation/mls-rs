@@ -27,6 +27,7 @@ use crate::{
 #[cfg(feature = "std")]
 use std::sync::{Mutex, MutexGuard};
 
+use crate::group::CoreGroupStateStorage;
 #[cfg(not(feature = "std"))]
 use spin::{Mutex, MutexGuard};
 
@@ -228,6 +229,8 @@ impl GroupStateStorage for InMemoryGroupStateStorage {
         Ok(())
     }
 }
+
+impl CoreGroupStateStorage for InMemoryGroupStateStorage {}
 
 #[cfg(all(test, feature = "prior_epoch"))]
 mod tests {

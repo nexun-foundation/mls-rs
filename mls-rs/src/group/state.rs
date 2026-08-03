@@ -19,7 +19,7 @@ use crate::{
 #[non_exhaustive]
 pub struct GroupState {
     #[cfg(feature = "by_ref_proposal")]
-    pub(crate) proposals: crate::group::ProposalCache,
+    pub proposals: crate::group::ProposalCache,
     pub context: GroupContext,
     pub(crate) public_tree: TreeKemPublic,
     pub(crate) interim_transcript_hash: InterimTranscriptHash,

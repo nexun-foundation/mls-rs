@@ -19,7 +19,7 @@ fn bench_serialize(c: &mut Criterion) {
             |b, _| {
                 b.iter_batched_ref(
                     || group_states.sender.clone(),
-                    move |sender| sender.write_to_storage().unwrap(),
+                    move |sender| sender.write_to_storage(Default::default()).unwrap(),
                     BatchSize::SmallInput,
                 )
             },
