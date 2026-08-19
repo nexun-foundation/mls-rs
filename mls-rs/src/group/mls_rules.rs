@@ -2,8 +2,6 @@
 // Copyright by contributors to this project.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
-use alloc::vec::Vec;
-
 use crate::group::{proposal_filter::ProposalBundle, Roster};
 
 #[cfg(feature = "private_message")]
@@ -236,7 +234,6 @@ pub trait MlsRules: Send + Sync {
 
 macro_rules! delegate_mls_rules {
     ($implementer:ty) => {
-        #[cfg_attr(coverage_nightly, coverage(off))]
         #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
         #[cfg_attr(mls_build_async, maybe_async::must_be_async)]
         impl<T: MlsRules + ?Sized> MlsRules for $implementer {
@@ -272,27 +269,6 @@ macro_rules! delegate_mls_rules {
             ) -> Result<EncryptionOptions, Self::Error> {
                 (**self).encryption_options(roster, context)
             }
-
-            fn custom_proposal_requires_update_path(
-                &self,
-                custom_proposal_type: ProposalType,
-            ) -> bool {
-                (**self).custom_proposal_requires_update_path(custom_proposal_type)
-            }
-
-            #[cfg(feature = "application_data")]
-            #[cfg_attr(mls_build_async, maybe_async::must_be_async)]
-            async fn update_components(
-                &self,
-                component_id: ComponentId,
-                component_data: Option<&[u8]>,
-                update: &[u8],
-                roster: &Roster,
-            ) -> Result<Vec<u8>, Self::Error> {
-                (**self)
-                    .update_components(component_id, component_data, update, roster)
-                    .await
-            }
         }
     };
 }
@@ -306,7 +282,6 @@ delegate_mls_rules!(&T);
 pub struct DefaultMlsRules {
     pub commit_options: CommitOptions,
     pub encryption_options: EncryptionOptions,
-    pub custom_proposals_that_require_update_path: Vec<ProposalType>,
 }
 
 impl DefaultMlsRules {
@@ -320,25 +295,15 @@ impl DefaultMlsRules {
     pub fn with_commit_options(self, commit_options: CommitOptions) -> Self {
         Self {
             commit_options,
-            ..self
+            encryption_options: self.encryption_options,
         }
     }
 
     /// Set encryption options.
     pub fn with_encryption_options(self, encryption_options: EncryptionOptions) -> Self {
         Self {
+            commit_options: self.commit_options,
             encryption_options,
-            ..self
-        }
-    }
-
-    pub fn with_custom_proposals_that_require_update_path(
-        self,
-        custom_proposals_that_require_update_path: Vec<ProposalType>,
-    ) -> Self {
-        Self {
-            custom_proposals_that_require_update_path,
-            ..self
         }
     }
 }
@@ -374,21 +339,5 @@ impl MlsRules for DefaultMlsRules {
         _: &GroupContext,
     ) -> Result<EncryptionOptions, Self::Error> {
         Ok(self.encryption_options)
-    }
-
-    fn custom_proposal_requires_update_path(&self, custom_proposal_type: ProposalType) -> bool {
-        self.custom_proposals_that_require_update_path
-            .contains(&custom_proposal_type)
-    }
-
-    #[cfg(feature = "application_data")]
-    async fn update_components(
-        &self,
-        _component_id: ComponentId,
-        _component_data: Option<&[u8]>,
-        update: &[u8],
-        _roster: &Roster,
-    ) -> Result<Vec<u8>, Self::Error> {
-        Ok(update.to_owned())
     }
 }
