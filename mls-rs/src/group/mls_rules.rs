@@ -2,6 +2,8 @@
 // Copyright by contributors to this project.
 // SPDX-License-Identifier: (Apache-2.0 OR MIT)
 
+use alloc::vec::Vec;
+
 use crate::group::{proposal_filter::ProposalBundle, Roster};
 
 #[cfg(feature = "private_message")]
@@ -230,10 +232,15 @@ pub trait MlsRules: Send + Sync {
         _update: &[u8],
         _roster: &Roster,
     ) -> Result<Vec<u8>, Self::Error>;
+    #[cfg(feature = "custom_proposal")]
+    fn custom_proposal_requires_update_path(&self, _proposal: &CustomProposal) -> bool {
+        true
+    }
 }
 
 macro_rules! delegate_mls_rules {
     ($implementer:ty) => {
+        #[cfg_attr(coverage_nightly, coverage(off))]
         #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
         #[cfg_attr(mls_build_async, maybe_async::must_be_async)]
         impl<T: MlsRules + ?Sized> MlsRules for $implementer {
@@ -269,6 +276,11 @@ macro_rules! delegate_mls_rules {
             ) -> Result<EncryptionOptions, Self::Error> {
                 (**self).encryption_options(roster, context)
             }
+
+            #[cfg(feature = "custom_proposal")]
+            fn custom_proposal_requires_update_path(&self, proposal: &CustomProposal) -> bool {
+                (**self).custom_proposal_requires_update_path(proposal)
+            }
         }
     };
 }
@@ -282,6 +294,7 @@ delegate_mls_rules!(&T);
 pub struct DefaultMlsRules {
     pub commit_options: CommitOptions,
     pub encryption_options: EncryptionOptions,
+    pub custom_proposals_that_require_update_path: Vec<ProposalType>,
 }
 
 impl DefaultMlsRules {
@@ -295,15 +308,25 @@ impl DefaultMlsRules {
     pub fn with_commit_options(self, commit_options: CommitOptions) -> Self {
         Self {
             commit_options,
-            encryption_options: self.encryption_options,
+            ..self
         }
     }
 
     /// Set encryption options.
     pub fn with_encryption_options(self, encryption_options: EncryptionOptions) -> Self {
         Self {
-            commit_options: self.commit_options,
             encryption_options,
+            ..self
+        }
+    }
+
+    pub fn with_custom_proposals_that_require_update_path(
+        self,
+        custom_proposals_that_require_update_path: Vec<ProposalType>,
+    ) -> Self {
+        Self {
+            custom_proposals_that_require_update_path,
+            ..self
         }
     }
 }
@@ -339,5 +362,11 @@ impl MlsRules for DefaultMlsRules {
         _: &GroupContext,
     ) -> Result<EncryptionOptions, Self::Error> {
         Ok(self.encryption_options)
+    }
+
+    #[cfg(feature = "custom_proposal")]
+    fn custom_proposal_requires_update_path(&self, proposal: &CustomProposal) -> bool {
+        self.custom_proposals_that_require_update_path
+            .contains(&proposal.proposal_type())
     }
 }
