@@ -1,0 +1,17 @@
+mls-rs-core/src/identity/provider.rs
+  h_08516f15d1b646 44-56
+mls-rs/src/tree_kem/leaf_node_validator.rs
+  h_08516f15d1b646 182-250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "f59f6c3eeec78ac6068ce22ce8b3e877cca492f7",
+  "prompts": {},
+  "humans": {
+    "h_08516f15d1b646": {
+      "author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "proton_build": "1.7.6-proton.8"
+}
