@@ -17,6 +17,20 @@ mls-rs/src/tree_kem/leaf_node_validator.rs
       "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
     }
   },
+  "commit_stats": {
+    "human_additions": 0,
+    "unknown_additions": 0,
+    "ai_additions": 109,
+    "ai_accepted": 109,
+    "git_diff_deleted_lines": 37,
+    "git_diff_added_lines": 109,
+    "tool_model_breakdown": {
+      "claude::claude-opus-5-5": {
+        "ai_additions": 109,
+        "ai_accepted": 109
+      }
+    }
+  },
   "token_usage": {
     "attributable": {
       "total": {
@@ -46,6 +60,12 @@ mls-rs/src/tree_kem/leaf_node_validator.rs
         "cache_read_input_tokens": 2754914
       }
     }
+  },
+  "activity": {
+    "added_sloc": 287,
+    "deleted_sloc": 350,
+    "checkpoints": 4,
+    "span_seconds": 1804
   },
   "proton_build": "1.7.6-proton.8"
 }
