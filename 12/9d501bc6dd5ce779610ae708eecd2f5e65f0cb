@@ -1,0 +1,51 @@
+mls-rs/src/tree_kem/leaf_node_validator.rs
+  s_60ddc8e53f6e1c::t_61354a976b4923 303
+  s_60ddc8e53f6e1c::t_830968817c2b7a 187-221,226,228-236,238-244,246-253,258,265-269,275-280,283-302,304-319
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "129d501bc6dd5ce779610ae708eecd2f5e65f0cb",
+  "prompts": {},
+  "sessions": {
+    "s_60ddc8e53f6e1c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "18e24874-ba01-43b3-aa9b-a8529f1e7840",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "token_usage": {
+    "attributable": {
+      "total": {
+        "input_tokens": 38,
+        "output_tokens": 17306,
+        "cache_creation_input_tokens": 26673,
+        "cache_read_input_tokens": 2754914
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 38,
+          "output_tokens": 17306,
+          "cache_creation_input_tokens": 26673,
+          "cache_read_input_tokens": 2754914
+        }
+      },
+      "tool_uses": {
+        "bash": 13,
+        "read": 3
+      }
+    },
+    "by_prompt": {
+      "s_60ddc8e53f6e1c": {
+        "input_tokens": 38,
+        "output_tokens": 17306,
+        "cache_creation_input_tokens": 26673,
+        "cache_read_input_tokens": 2754914
+      }
+    }
+  },
+  "proton_build": "1.7.6-proton.8"
+}
