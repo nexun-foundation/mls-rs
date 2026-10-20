@@ -41,6 +41,20 @@ pub trait IdentityProvider: Send + Sync {
     /// Error type that this provider returns on internal failure.
     type Error: IntoAnyError;
 
+    /// Same as [self.validate_member] but batched. Allows some perf optimizations like ed25519 batching
+    async fn validate_members<'a>(
+        &self,
+        signing_identities: impl Iterator<Item = &'a SigningIdentity> + Send,
+        timestamp: Option<MlsTime>,
+        context: MemberValidationContext<'_>,
+    ) -> Result<(), Self::Error> {
+        for signing_identity in signing_identities {
+            self.validate_member(signing_identity, timestamp, context)
+                .await?;
+        }
+        Ok(())
+    }
+
     /// Determine if `signing_identity` is valid for a group member.
     ///
     /// A `timestamp` value can optionally be supplied to aid with validation

@@ -393,6 +393,13 @@ where
         Ok(self.ec_signer.verify(public_key, signature, data)?)
     }
 
+    async fn verify_batch<'a>(
+        &self,
+        input: impl Iterator<Item = (&'a SignaturePublicKey, &'a [u8], &'a [u8])> + Send,
+    ) -> Result<(), Self::Error> {
+        Ok(self.ec_signer.verify_batch(input)?)
+    }
+
     async fn signature_key_generate(
         &self,
     ) -> Result<(SignatureSecretKey, SignaturePublicKey), Self::Error> {

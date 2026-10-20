@@ -4,8 +4,8 @@
 
 use crate::ec::{
     generate_keypair, private_key_bytes_to_public, private_key_from_bytes,
-    pub_key_from_uncompressed, sign_ed25519, sign_p256, sign_p384, verify_ed25519, verify_p256,
-    verify_p384, EcError, EcPrivateKey, EcPublicKey,
+    pub_key_from_uncompressed, sign_ed25519, sign_p256, sign_p384, verify_ed25519,
+    verify_ed25519_batch, verify_p256, verify_p384, EcError, EcPrivateKey, EcPublicKey,
 };
 use alloc::vec::Vec;
 use core::ops::Deref;
@@ -94,5 +94,99 @@ impl EcSigner {
         }?;
 
         ver.then_some(()).ok_or(EcSignerError::InvalidSignature)
+    }
+
+    /// Verify all `(public_key, signature, data)` triples. Ed25519 signatures are verified
+    /// with a single batch verification (see [verify_ed25519_batch] for the caveats), other
+    /// curves fall back to one verification per triple.
+    pub fn verify_batch<'a>(
+        &self,
+        input: impl IntoIterator<Item = (&'a SignaturePublicKey, &'a [u8], &'a [u8])>,
+    ) -> Result<(), EcSignerError> {
+        let mut input = input.into_iter();
+
+        if self.0 != Curve::Ed25519 {
+            return input.try_for_each(|(public_key, signature, data)| {
+                self.verify(public_key, signature, data)
+            });
+        }
+
+        let (len, _) = input.size_hint();
+        let mut public_keys = Vec::with_capacity(len);
+        let mut signatures = Vec::with_capacity(len);
+        let mut data = Vec::with_capacity(len);
+
+        for (public_key, signature, msg) in input {
+            match pub_key_from_uncompressed(public_key, self.0)? {
+                EcPublicKey::Ed25519(key) => public_keys.push(key),
+                _ => return Err(EcSignerError::EcKeyNotSignature),
+            }
+
+            signatures.push(signature);
+            data.push(msg);
+        }
+
+        verify_ed25519_batch(&public_keys, &signatures, &data)?
+            .then_some(())
+            .ok_or(EcSignerError::InvalidSignature)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::{EcSigner, EcSignerError};
+    use alloc::vec::Vec;
+    use assert_matches::assert_matches;
+    use mls_rs_core::crypto::SignaturePublicKey;
+    use mls_rs_crypto_traits::Curve;
+
+    fn input<'a>(
+        keys_and_sigs: &'a [(SignaturePublicKey, Vec<u8>)],
+        messages: &[&'a [u8]],
+    ) -> Vec<(&'a SignaturePublicKey, &'a [u8], &'a [u8])> {
+        keys_and_sigs
+            .iter()
+            .zip(messages)
+            .map(|((public, sig), msg)| (public, sig.as_slice(), *msg))
+            .collect()
+    }
+
+    fn test_batch(curve: Curve) {
+        let signer = EcSigner::new_from_curve(curve);
+
+        let messages = [b"foo".as_slice(), b"bar", b"baz"];
+
+        let mut keys_and_sigs = messages
+            .iter()
+            .map(|msg| {
+                let (secret, public) = signer.signature_key_generate().unwrap();
+                (public, signer.sign(&secret, msg).unwrap())
+            })
+            .collect::<Vec<_>>();
+
+        assert_matches!(
+            signer.verify_batch(input(&keys_and_sigs, &messages)),
+            Ok(())
+        );
+        assert_matches!(signer.verify_batch(core::iter::empty()), Ok(()));
+
+        // Swap two signatures
+        let sig_0 = core::mem::take(&mut keys_and_sigs[0].1);
+        keys_and_sigs[0].1 = core::mem::replace(&mut keys_and_sigs[1].1, sig_0);
+
+        assert_matches!(
+            signer.verify_batch(input(&keys_and_sigs, &messages)),
+            Err(EcSignerError::InvalidSignature)
+        );
+    }
+
+    #[test]
+    fn verify_batch_ed25519() {
+        test_batch(Curve::Ed25519)
+    }
+
+    #[test]
+    fn verify_batch_p256() {
+        test_batch(Curve::P256)
     }
 }

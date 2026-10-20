@@ -13,15 +13,18 @@ use super::node::{Node, NodeIndex};
 use crate::client::MlsError;
 use crate::crypto::CipherSuiteProvider;
 use crate::group::GroupContext;
+#[allow(unused_imports)]
 use crate::iter::wrap_impl_iter;
 use crate::time::MlsTime;
 use crate::tree_kem::math as tree_math;
 use crate::tree_kem::{leaf_node_validator::LeafNodeValidator, TreeKemPublic};
 use mls_rs_core::identity::{IdentityProvider, MemberValidationContext};
 
+#[allow(unused_imports)]
 #[cfg(all(not(mls_build_async), feature = "rayon"))]
 use rayon::prelude::*;
 
+#[allow(unused_imports)]
 #[cfg(mls_build_async)]
 use futures::{StreamExt, TryStreamExt};
 
@@ -101,18 +104,27 @@ impl<'a, C: IdentityProvider, CSP: CipherSuiteProvider> TreeValidator<'a, C, CSP
         tree: &TreeKemPublic,
         maybe_time: Option<MlsTime>,
     ) -> Result<(), MlsError> {
-        let leaves = wrap_impl_iter(tree.nodes.non_empty_leaves());
+        use crate::tree_kem::leaf_node::LeafNodeSource;
+        use crate::tree_kem::leaf_node_validator::ValidationContext;
 
-        #[cfg(mls_build_async)]
-        let leaves = leaves.map(Ok);
-
-        { leaves }
-            .try_for_each(|(index, leaf_node)| async move {
-                self.leaf_node_validator
-                    .revalidate(leaf_node, self.group_id, *index, maybe_time)
-                    .await
+        let leaves = tree
+            .nodes
+            .non_empty_leaves()
+            .map(|(index, leaf_node)| {
+                let context = match leaf_node.leaf_node_source {
+                    LeafNodeSource::KeyPackage(_) => ValidationContext::Add(maybe_time),
+                    LeafNodeSource::Update => {
+                        ValidationContext::Update((self.group_id, *index, maybe_time))
+                    }
+                    LeafNodeSource::Commit(_) => {
+                        ValidationContext::Commit((self.group_id, *index, maybe_time))
+                    }
+                };
+                (leaf_node, context)
             })
-            .await
+            .collect::<Vec<_>>();
+
+        self.leaf_node_validator.check_if_all_valid(&leaves).await
     }
 }
 
