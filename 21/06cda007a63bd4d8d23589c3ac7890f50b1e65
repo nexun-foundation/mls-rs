@@ -27,6 +27,20 @@ mls-rs-crypto-rustcrypto/src/lib.rs
       "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
     }
   },
+  "commit_stats": {
+    "human_additions": 0,
+    "unknown_additions": 0,
+    "ai_additions": 138,
+    "ai_accepted": 138,
+    "git_diff_deleted_lines": 3,
+    "git_diff_added_lines": 138,
+    "tool_model_breakdown": {
+      "claude::claude-opus-5-5": {
+        "ai_additions": 138,
+        "ai_accepted": 138
+      }
+    }
+  },
   "token_usage": {
     "attributable": {
       "total": {
@@ -76,6 +90,12 @@ mls-rs-crypto-rustcrypto/src/lib.rs
         "cache_read_input_tokens": 4520415
       }
     }
+  },
+  "activity": {
+    "added_sloc": 592,
+    "deleted_sloc": 393,
+    "checkpoints": 10,
+    "span_seconds": 5557
   },
   "proton_build": "1.7.6-proton.8"
 }
