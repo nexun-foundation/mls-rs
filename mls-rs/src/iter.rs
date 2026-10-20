@@ -16,6 +16,7 @@ mod sync_rayon {
         it.into_par_iter()
     }
 
+    #[allow(dead_code)]
     pub fn wrap_impl_iter<I>(it: I) -> IterBridge<I::IntoIter>
     where
         I: IntoIterator,
@@ -53,6 +54,7 @@ mod sync_rayon {
 }
 
 #[cfg(all(not(mls_build_async), feature = "rayon"))]
+#[allow(unused_imports)]
 pub use sync_rayon::{wrap_impl_iter, wrap_iter, ParallelIteratorExt};
 
 #[cfg(not(any(mls_build_async, feature = "rayon")))]
@@ -64,6 +66,7 @@ mod sync {
         it.into_iter()
     }
 
+    #[allow(dead_code)]
     pub fn wrap_impl_iter<I>(it: I) -> I::IntoIter
     where
         I: IntoIterator,
@@ -73,6 +76,7 @@ mod sync {
 }
 
 #[cfg(not(any(mls_build_async, feature = "rayon")))]
+#[allow(unused_imports)]
 pub use sync::{wrap_impl_iter, wrap_iter};
 
 #[cfg(mls_build_async)]
@@ -84,6 +88,7 @@ mod async_ {
         futures::stream::iter(it)
     }
 
+    #[allow(dead_code)]
     pub fn wrap_impl_iter<I>(it: I) -> futures::stream::Iter<I::IntoIter>
     where
         I: IntoIterator,
@@ -93,4 +98,5 @@ mod async_ {
 }
 
 #[cfg(mls_build_async)]
+#[allow(unused_imports)]
 pub use async_::{wrap_impl_iter, wrap_iter};

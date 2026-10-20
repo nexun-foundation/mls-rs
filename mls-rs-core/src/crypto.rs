@@ -541,4 +541,23 @@ pub trait CipherSuiteProvider: Send + Sync {
         signature: &[u8],
         data: &[u8],
     ) -> Result<(), Self::Error>;
+
+    /// Verify a batch of `(public_key, signature, data)` triples. Succeeds only if every
+    /// signature in the batch is valid; on failure, no indication is given of which one failed.
+    ///
+    /// The default implementation calls [verify](CipherSuiteProvider::verify) on each triple.
+    /// Providers may override it with a faster batched algorithm (e.g. Ed25519 batch
+    /// verification). Note that such an algorithm must accept exactly the same signatures as
+    /// [verify](CipherSuiteProvider::verify), otherwise group members could disagree on the
+    /// validity of a message.
+    async fn verify_batch<'a>(
+        &self,
+        input: impl Iterator<Item = (&'a SignaturePublicKey, &'a [u8], &'a [u8])> + Send,
+    ) -> Result<(), Self::Error> {
+        for (public_key, signature, data) in input {
+            self.verify(public_key, signature, data).await?;
+        }
+
+        Ok(())
+    }
 }

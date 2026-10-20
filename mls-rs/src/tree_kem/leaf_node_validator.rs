@@ -103,6 +103,7 @@ impl<'a, C: IdentityProvider, CP: CipherSuiteProvider> LeafNodeValidator<'a, C, 
         Ok(())
     }
 
+    #[allow(dead_code)]
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
     pub async fn revalidate(
         &self,
@@ -179,66 +180,151 @@ impl<'a, C: IdentityProvider, CP: CipherSuiteProvider> LeafNodeValidator<'a, C, 
     }
 
     #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
-    pub(crate) async fn check_if_valid(
+    pub(crate) async fn check_if_all_valid(
         &self,
-        leaf_node: &LeafNode,
-        context: ValidationContext<'_>,
+        leaf_nodes: &[(&LeafNode, ValidationContext<'_>)],
     ) -> Result<(), MlsError> {
-        // Check that we are validating within the proper context
-        self.check_context(leaf_node, &context)?;
+        use alloc::vec::Vec;
+        use mls_rs_codec::MlsEncode;
 
-        // Verify the credential
+        // Parse the group extensions once for all leaf nodes
+        let new_extensions = self.context.new_extensions();
+
+        let required_capabilities = new_extensions
+            .and_then(|ext| ext.get_as::<RequiredCapabilitiesExt>().transpose())
+            .transpose()?;
+
+        let group_extensions = new_extensions
+            .iter()
+            .flat_map(|ext| ext.iter().map(|ext| ext.extension_type))
+            .filter(|ext_type| !ext_type.is_default())
+            .collect::<Vec<_>>();
+
+        #[cfg(feature = "by_ref_proposal")]
+        let external_sender_credentials = {
+            let mut cred_types = new_extensions
+                .and_then(|ext| ext.get_as::<ExternalSendersExt>().transpose())
+                .transpose()?
+                .map(|ext| {
+                    ext.allowed_senders
+                        .iter()
+                        .map(|sender| sender.credential.credential_type())
+                        .collect::<Vec<_>>()
+                })
+                .unwrap_or_default();
+
+            cred_types.sort_unstable();
+            cred_types.dedup();
+            cred_types
+        };
+
+        // Run the cheap checks first to avoid any crypto operation on invalid leaf nodes
+        for (leaf_node, context) in leaf_nodes {
+            // Check that we are validating within the proper context
+            self.check_context(leaf_node, context)?;
+
+            let capabilities = &leaf_node.capabilities;
+
+            // If required capabilities are specified, verify the leaf node meets the requirements
+            if let Some(required) = &required_capabilities {
+                if let Some(ext) = required
+                    .extensions
+                    .iter()
+                    .find(|e| !capabilities.extensions.contains(e))
+                {
+                    return Err(MlsError::RequiredExtensionNotFound(*ext));
+                }
+
+                if let Some(p) = required
+                    .proposals
+                    .iter()
+                    .find(|p| !capabilities.proposals.contains(p))
+                {
+                    return Err(MlsError::RequiredProposalNotFound(*p));
+                }
+
+                if let Some(c) = required
+                    .credentials
+                    .iter()
+                    .find(|c| !capabilities.credentials.contains(c))
+                {
+                    return Err(MlsError::RequiredCredentialNotFound(*c));
+                }
+            }
+
+            // If there are extensions, make sure they are referenced in the capabilities field
+            for one_ext in &*leaf_node.ungreased_extensions() {
+                if !one_ext.extension_type.is_default()
+                    && !capabilities.extensions.contains(&one_ext.extension_type)
+                {
+                    return Err(MlsError::ExtensionNotInCapabilities(one_ext.extension_type));
+                }
+            }
+
+            // Verify that group extensions are supported by the leaf
+            if let Some(ext_type) = group_extensions
+                .iter()
+                .find(|e| !capabilities.extensions.contains(e))
+            {
+                return Err(MlsError::UnsupportedGroupExtension(*ext_type));
+            }
+
+            leaf_node.validate_no_default_values_listed()?;
+
+            #[cfg(feature = "by_ref_proposal")]
+            if let Some(c) = external_sender_credentials
+                .iter()
+                .find(|c| !capabilities.credentials.contains(c))
+            {
+                return Err(MlsError::RequiredCredentialNotFound(*c));
+            }
+        }
+
+        // Verify the credentials
         self.identity_provider
-            .validate_member(
-                &leaf_node.signing_identity,
-                context.generation_time(),
+            .validate_members(
+                leaf_nodes.iter().map(|(ln, _)| &ln.signing_identity),
+                leaf_nodes
+                    .first()
+                    .and_then(|(_, ctx)| ctx.generation_time()),
                 self.context,
             )
             .await
             .map_err(|e| MlsError::IdentityProviderError(e.into_any_error()))?;
 
-        // Verify that the credential signed the leaf node
-        leaf_node
-            .verify(
-                self.cipher_suite_provider,
-                &leaf_node.signing_identity.signature_key,
-                &context.signing_context(),
-            )
-            .await?;
+        // Verify that the credentials signed the leaf nodes, all in a single batch
+        let sign_contents = leaf_nodes
+            .iter()
+            .map(|(ln, context)| {
+                let content = ln.signable_content(&context.signing_context())?;
+                crate::signer::SignContent::new(LeafNode::SIGN_LABEL, content).mls_encode_to_vec()
+            })
+            .collect::<Result<Vec<_>, _>>()?;
 
-        // If required capabilities are specified, verify the leaf node meets the requirements
-        self.validate_required_capabilities(leaf_node)?;
+        let to_verify = leaf_nodes
+            .iter()
+            .zip(&sign_contents)
+            .map(|((ln, _), content)| {
+                (
+                    &ln.signing_identity.signature_key,
+                    ln.signature.as_slice(),
+                    content.as_slice(),
+                )
+            });
 
-        // If there are extensions, make sure they are referenced in the capabilities field
-        for one_ext in &*leaf_node.ungreased_extensions() {
-            if !one_ext.extension_type.is_default()
-                && !leaf_node
-                    .capabilities
-                    .extensions
-                    .contains(&one_ext.extension_type)
-            {
-                return Err(MlsError::ExtensionNotInCapabilities(one_ext.extension_type));
-            }
-        }
+        self.cipher_suite_provider
+            .verify_batch(to_verify)
+            .await
+            .map_err(|_| MlsError::InvalidSignature)
+    }
 
-        // Verify that group extensions are supported by the leaf
-        if let Some(extensions) = self.context.new_extensions() {
-            extensions
-                .iter()
-                .map(|ext| ext.extension_type)
-                .find(|ext_type| {
-                    !ext_type.is_default() && !leaf_node.capabilities.extensions.contains(ext_type)
-                })
-                .map(MlsError::UnsupportedGroupExtension)
-                .map_or(Ok(()), Err)?;
-        }
-
-        leaf_node.validate_no_default_values_listed()?;
-
-        #[cfg(feature = "by_ref_proposal")]
-        self.validate_external_senders_ext_credentials(leaf_node)?;
-
-        Ok(())
+    #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
+    pub(crate) async fn check_if_valid(
+        &self,
+        leaf_node: &LeafNode,
+        context: ValidationContext<'_>,
+    ) -> Result<(), MlsError> {
+        self.check_if_all_valid(&[(leaf_node, context)]).await
     }
 }
 

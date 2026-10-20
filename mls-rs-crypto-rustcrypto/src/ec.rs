@@ -314,6 +314,24 @@ pub fn verify_ed25519(
     Ok(ed25519_dalek::Verifier::verify(public_key, data, &signature).is_ok())
 }
 
+/// Verify all `(public_key, signature, data)` triples at once using Ed25519 batch verification.
+///
+/// Note that batch verification uses the cofactored verification equation whereas
+/// [verify_ed25519] uses the cofactorless one. A maliciously crafted signature (e.g. with a
+/// small-order component in `R`) can therefore be accepted here and rejected by [verify_ed25519].
+pub fn verify_ed25519_batch(
+    public_keys: &[ed25519_dalek::VerifyingKey],
+    signatures: &[&[u8]],
+    data: &[&[u8]],
+) -> Result<bool, EcError> {
+    let signatures = signatures
+        .iter()
+        .map(|s| ed25519_dalek::Signature::try_from(*s))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(ed25519_dalek::verify_batch(data, &signatures, public_keys).is_ok())
+}
+
 pub fn generate_keypair(curve: Curve) -> Result<KeyPair, EcError> {
     let secret = generate_private_key(curve)?;
     let public = private_key_to_public(&secret)?;
