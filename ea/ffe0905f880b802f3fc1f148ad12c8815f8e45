@@ -1,0 +1,55 @@
+mls-rs/src/tree_kem/leaf_node_validator.rs
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 304-310,313
+mls-rs-core/src/crypto.rs
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 553,555
+mls-rs-crypto-rustcrypto/src/ec_signer.rs
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 102,104,106-107,109,114-117,125-126,168,171,178
+mls-rs-crypto-rustcrypto/src/lib.rs
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 396,398
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "eaffe0905f880b802f3fc1f148ad12c8815f8e45",
+  "prompts": {},
+  "sessions": {
+    "s_60ddc8e53f6e1c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "18e24874-ba01-43b3-aa9b-a8529f1e7840",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "token_usage": {
+    "attributable": {
+      "total": {
+        "input_tokens": 18,
+        "output_tokens": 6350,
+        "cache_creation_input_tokens": 9907,
+        "cache_read_input_tokens": 1484217
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 18,
+          "output_tokens": 6350,
+          "cache_creation_input_tokens": 9907,
+          "cache_read_input_tokens": 1484217
+        }
+      },
+      "tool_uses": {
+        "bash": 8
+      }
+    },
+    "by_prompt": {
+      "s_60ddc8e53f6e1c": {
+        "input_tokens": 18,
+        "output_tokens": 6350,
+        "cache_creation_input_tokens": 9907,
+        "cache_read_input_tokens": 1484217
+      }
+    }
+  },
+  "proton_build": "1.7.6-proton.8"
+}
