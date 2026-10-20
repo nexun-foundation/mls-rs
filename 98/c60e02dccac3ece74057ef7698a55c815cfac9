@@ -1,0 +1,31 @@
+mls-rs-core/src/identity/provider.rs
+  h_08516f15d1b646 44-56
+mls-rs/src/tree_kem/leaf_node_validator.rs
+  h_08516f15d1b646 182-250
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "98c60e02dccac3ece74057ef7698a55c815cfac9",
+  "prompts": {},
+  "humans": {
+    "h_08516f15d1b646": {
+      "author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "commit_stats": {
+    "human_additions": 82,
+    "unknown_additions": 0,
+    "ai_additions": 0,
+    "ai_accepted": 0,
+    "git_diff_deleted_lines": 0,
+    "git_diff_added_lines": 82,
+    "tool_model_breakdown": {}
+  },
+  "token_usage": {
+    "origins": [
+      "f59f6c3eeec78ac6068ce22ce8b3e877cca492f7"
+    ]
+  },
+  "proton_build": "1.7.6-proton.8"
+}
