@@ -34,7 +34,7 @@ use mls_rs::{Client, CryptoProvider};
 use mls_rs_core::crypto::CipherSuiteProvider;
 use mls_rs_core::identity::BasicCredential;
 use rand::prelude::IndexedMutRandom;
-use rand::RngCore;
+use rand::Rng;
 
 use mls_rs::test_utils::{all_process_message, get_test_basic_credential};
 
@@ -338,7 +338,7 @@ async fn test_remove_proposals(
 
     // Remove people from the group one at a time
     while groups.len() > 1 {
-        let removed_and_committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 2);
+        let removed_and_committer = (0..groups.len()).sample(&mut rand::rng(), 2);
 
         let to_remove = removed_and_committer[0];
         let committer = removed_and_committer[1];
