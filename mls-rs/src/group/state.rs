@@ -11,7 +11,7 @@ use super::{
 };
 use crate::framing::Sender;
 use crate::{
-    group::{GroupContext, TreeKemPublic},
+    group::{GroupContext, Roster, TreeKemPublic},
     tree_kem::node::LeafIndex,
 };
 
@@ -43,6 +43,10 @@ impl GroupState {
             .get_leaf_node(leaf_index)
             .ok()
             .map(|ln| member_from_leaf_node(ln, leaf_index))
+    }
+
+    pub fn roster(&self) -> Roster<'_> {
+        self.public_tree.roster()
     }
 
     pub(crate) fn new(
