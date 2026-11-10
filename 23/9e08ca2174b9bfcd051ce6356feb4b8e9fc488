@@ -1,0 +1,108 @@
+mls-rs/src/tree_kem/leaf_node_validator.rs
+  s_60ddc8e53f6e1c::t_61354a976b4923 303
+  s_60ddc8e53f6e1c::t_830968817c2b7a 187-221,226,228-236,238-244,246-253,258,265-269,275-280,283-302,311-312,314-315
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 304-310,313
+  h_08516f15d1b646 324
+mls-rs-core/src/crypto.rs
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 553,555
+mls-rs-crypto-rustcrypto/src/ec_signer.rs
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 102,104,106-107,109,114-117,125-126,168,171,178
+mls-rs-crypto-rustcrypto/src/lib.rs
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 396,398
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "239e08ca2174b9bfcd051ce6356feb4b8e9fc488",
+  "prompts": {},
+  "humans": {
+    "h_08516f15d1b646": {
+      "author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "sessions": {
+    "s_60ddc8e53f6e1c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "18e24874-ba01-43b3-aa9b-a8529f1e7840",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "commit_stats": {
+    "human_additions": 0,
+    "unknown_additions": 0,
+    "ai_additions": 109,
+    "ai_accepted": 109,
+    "git_diff_deleted_lines": 37,
+    "git_diff_added_lines": 109,
+    "tool_model_breakdown": {
+      "claude::claude-opus-5-5": {
+        "ai_additions": 109,
+        "ai_accepted": 109
+      }
+    }
+  },
+  "token_usage": {
+    "attributable": {
+      "total": {
+        "input_tokens": 56,
+        "output_tokens": 23656,
+        "cache_creation_input_tokens": 36580,
+        "cache_read_input_tokens": 4239131
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 56,
+          "output_tokens": 23656,
+          "cache_creation_input_tokens": 36580,
+          "cache_read_input_tokens": 4239131
+        }
+      },
+      "tool_uses": {
+        "bash": 21,
+        "read": 3
+      }
+    },
+    "carried": {
+      "total": {
+        "input_tokens": 18,
+        "output_tokens": 3568,
+        "cache_creation_input_tokens": 158718,
+        "cache_read_input_tokens": 1426572
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 18,
+          "output_tokens": 3568,
+          "cache_creation_input_tokens": 158718,
+          "cache_read_input_tokens": 1426572
+        }
+      }
+    },
+    "by_prompt": {
+      "s_60ddc8e53f6e1c": {
+        "input_tokens": 56,
+        "output_tokens": 23656,
+        "cache_creation_input_tokens": 36580,
+        "cache_read_input_tokens": 4239131
+      }
+    },
+    "origins": [
+      "129d501bc6dd5ce779610ae708eecd2f5e65f0cb",
+      "3d3d1069ede62c0cea77e44ab5647bb578e23744",
+      "eaffe0905f880b802f3fc1f148ad12c8815f8e45"
+    ]
+  },
+  "churn": {
+    "total": 8
+  },
+  "activity": {
+    "added_sloc": 434,
+    "deleted_sloc": 499,
+    "checkpoints": 7,
+    "span_seconds": 1806225
+  },
+  "proton_build": "1.7.6-proton.8"
+}
