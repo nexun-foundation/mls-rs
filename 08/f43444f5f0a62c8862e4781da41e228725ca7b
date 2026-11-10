@@ -11,6 +11,15 @@ mls-rs-core/src/identity/provider.rs
       "author": "jean-sol-patre <jeansolpatre@pm.me>"
     }
   },
+  "commit_stats": {
+    "human_additions": 1,
+    "unknown_additions": 0,
+    "ai_additions": 0,
+    "ai_accepted": 0,
+    "git_diff_deleted_lines": 1,
+    "git_diff_added_lines": 1,
+    "tool_model_breakdown": {}
+  },
   "token_usage": {
     "carried": {
       "total": {
@@ -28,6 +37,12 @@ mls-rs-core/src/identity/provider.rs
         }
       }
     }
+  },
+  "activity": {
+    "added_sloc": 21,
+    "deleted_sloc": 6,
+    "checkpoints": 2,
+    "span_seconds": 33
   },
   "proton_build": "1.7.6-proton.8"
 }
