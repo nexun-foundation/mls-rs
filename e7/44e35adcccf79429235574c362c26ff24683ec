@@ -1,0 +1,127 @@
+mls-rs-core/src/crypto.rs
+  s_60ddc8e53f6e1c::t_b990b04c950d05 544-552,554,556-562
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 553,555
+mls-rs-crypto-rustcrypto/src/ec_signer.rs
+  s_60ddc8e53f6e1c::t_45c07c8dd611a2 174-175
+  s_60ddc8e53f6e1c::t_025e398e3d6aea 7-8,110-111,167,169-170
+  s_60ddc8e53f6e1c::t_91db78d56c45f8 191
+  s_60ddc8e53f6e1c::t_b990b04c950d05 98-101,103,105,108,112-113,118-124,127-166,172-173,176-177,179-190
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 102,104,106-107,109,114-117,125-126,168,171,178
+mls-rs-crypto-rustcrypto/src/ec.rs
+  s_60ddc8e53f6e1c::t_b990b04c950d05 317-334
+mls-rs-crypto-rustcrypto/Cargo.toml
+  s_60ddc8e53f6e1c::t_b990b04c950d05 59
+mls-rs-crypto-rustcrypto/src/lib.rs
+  s_60ddc8e53f6e1c::t_b990b04c950d05 397,399-402
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 396,398
+mls-rs-core/src/identity/provider.rs
+  h_08516f15d1b646 44-56
+mls-rs/src/tree_kem/leaf_node_validator.rs
+  h_08516f15d1b646 182-186,222-224,225,227,237,245,254-257,259-264,270-274,281-282,324
+  s_60ddc8e53f6e1c::t_61354a976b4923 303
+  s_60ddc8e53f6e1c::t_830968817c2b7a 187-221,226,228-236,238-244,246-253,258,265-269,275-280,283-302,311-312,314-315
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 304-310,313
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "e744e35adcccf79429235574c362c26ff24683ec",
+  "prompts": {},
+  "humans": {
+    "h_08516f15d1b646": {
+      "author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "sessions": {
+    "s_60ddc8e53f6e1c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "18e24874-ba01-43b3-aa9b-a8529f1e7840",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "commit_stats": {
+    "human_additions": 0,
+    "unknown_additions": 0,
+    "ai_additions": 138,
+    "ai_accepted": 138,
+    "git_diff_deleted_lines": 3,
+    "git_diff_added_lines": 138,
+    "tool_model_breakdown": {
+      "claude::claude-opus-5-5": {
+        "ai_additions": 138,
+        "ai_accepted": 138
+      }
+    }
+  },
+  "token_usage": {
+    "attributable": {
+      "total": {
+        "input_tokens": 154,
+        "output_tokens": 67622,
+        "cache_creation_input_tokens": 216967,
+        "cache_read_input_tokens": 8759546
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 154,
+          "output_tokens": 67622,
+          "cache_creation_input_tokens": 216967,
+          "cache_read_input_tokens": 8759546
+        }
+      },
+      "tool_uses": {
+        "askuserquestion": 1,
+        "bash": 65,
+        "edit": 2,
+        "exitplanmode": 1,
+        "read": 3,
+        "toolsearch": 1,
+        "write": 1
+      }
+    },
+    "carried": {
+      "total": {
+        "input_tokens": 166,
+        "output_tokens": 79880,
+        "cache_creation_input_tokens": 346716,
+        "cache_read_input_tokens": 12102635
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 166,
+          "output_tokens": 79880,
+          "cache_creation_input_tokens": 346716,
+          "cache_read_input_tokens": 12102635
+        }
+      }
+    },
+    "by_prompt": {
+      "s_60ddc8e53f6e1c": {
+        "input_tokens": 154,
+        "output_tokens": 67622,
+        "cache_creation_input_tokens": 216967,
+        "cache_read_input_tokens": 8759546
+      }
+    },
+    "origins": [
+      "129d501bc6dd5ce779610ae708eecd2f5e65f0cb",
+      "2106cda007a63bd4d8d23589c3ac7890f50b1e65",
+      "3d3d1069ede62c0cea77e44ab5647bb578e23744",
+      "eaffe0905f880b802f3fc1f148ad12c8815f8e45",
+      "f59f6c3eeec78ac6068ce22ce8b3e877cca492f7"
+    ]
+  },
+  "churn": {
+    "total": 8
+  },
+  "activity": {
+    "added_sloc": 1026,
+    "deleted_sloc": 892,
+    "checkpoints": 17,
+    "span_seconds": 1806225
+  },
+  "proton_build": "1.7.6-proton.8"
+}
