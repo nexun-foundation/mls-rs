@@ -1,0 +1,141 @@
+mls-rs-crypto-rustcrypto/src/ec.rs
+  s_60ddc8e53f6e1c::t_b990b04c950d05 317-334
+mls-rs-crypto-rustcrypto/src/lib.rs
+  s_60ddc8e53f6e1c::t_b990b04c950d05 397,399-402
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 396,398
+mls-rs-crypto-rustcrypto/src/ec_signer.rs
+  s_60ddc8e53f6e1c::t_45c07c8dd611a2 174-175
+  s_60ddc8e53f6e1c::t_91db78d56c45f8 191
+  s_60ddc8e53f6e1c::t_025e398e3d6aea 7-8,110-111,167,169-170
+  s_60ddc8e53f6e1c::t_b990b04c950d05 98-101,103,105,108,112-113,118-124,127-166,172-173,176-177,179-190
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 102,104,106-107,109,114-117,125-126,168,171,178
+mls-rs-core/src/crypto.rs
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 553,555
+  s_60ddc8e53f6e1c::t_b990b04c950d05 544-552,554,556-562
+mls-rs/src/iter.rs
+  s_60ddc8e53f6e1c::t_5565938cb44b64 19,57,69,79,91,101
+mls-rs/src/tree_kem/tree_validator.rs
+  s_60ddc8e53f6e1c::t_d1adffe6e98351 107-123,125-127
+  s_60ddc8e53f6e1c::t_5565938cb44b64 16,23,27
+mls-rs-crypto-rustcrypto/Cargo.toml
+  s_60ddc8e53f6e1c::t_b990b04c950d05 59
+mls-rs/src/tree_kem/leaf_node_validator.rs
+  s_60ddc8e53f6e1c::t_ecd2fccb353ab2 287-289,304-313
+  s_60ddc8e53f6e1c::t_5565938cb44b64 106
+  h_08516f15d1b646 183,223,227,237,245,254-257,259-264,272-274
+  s_60ddc8e53f6e1c::t_830968817c2b7a 187-188,190-191,193-219,221,226,228-230,232-236,238-244,246-253,258,265-267,269,275,277-280,283-285,290-297,300-302,314-315,317-318
+  s_60ddc8e53f6e1c::t_ef98c808e7cf38 316
+  s_60ddc8e53f6e1c::t_8e8578c537fcc9 185,222,224,286,298-299,327
+  s_60ddc8e53f6e1c::t_5eb00ce7a22354 319,321-326
+mls-rs-core/src/identity/provider.rs
+  h_08516f15d1b646 44-46,48-51,54-57
+  s_60ddc8e53f6e1c::t_c0c2bb019ff9b2 47,52-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "6c423f8eb72f34437b75388b85cdfe51ef21addf",
+  "prompts": {},
+  "humans": {
+    "h_08516f15d1b646": {
+      "author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "sessions": {
+    "s_60ddc8e53f6e1c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "18e24874-ba01-43b3-aa9b-a8529f1e7840",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": null
+    }
+  },
+  "commit_stats": {
+    "human_additions": 29,
+    "unknown_additions": 0,
+    "ai_additions": 286,
+    "ai_accepted": 286,
+    "git_diff_deleted_lines": 59,
+    "git_diff_added_lines": 315,
+    "tool_model_breakdown": {
+      "claude::claude-opus-5-5": {
+        "ai_additions": 286,
+        "ai_accepted": 286
+      }
+    }
+  },
+  "token_usage": {
+    "attributable": {
+      "total": {
+        "input_tokens": 194,
+        "output_tokens": 83585,
+        "cache_creation_input_tokens": 269299,
+        "cache_read_input_tokens": 10903506
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 194,
+          "output_tokens": 83585,
+          "cache_creation_input_tokens": 269299,
+          "cache_read_input_tokens": 10903506
+        }
+      },
+      "tool_uses": {
+        "askuserquestion": 1,
+        "bash": 108,
+        "edit": 4,
+        "exitplanmode": 1,
+        "read": 4,
+        "toolsearch": 1,
+        "write": 1
+      }
+    },
+    "carried": {
+      "total": {
+        "input_tokens": 222,
+        "output_tokens": 99269,
+        "cache_creation_input_tokens": 385967,
+        "cache_read_input_tokens": 17317930
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 222,
+          "output_tokens": 99269,
+          "cache_creation_input_tokens": 385967,
+          "cache_read_input_tokens": 17317930
+        }
+      }
+    },
+    "by_prompt": {
+      "s_60ddc8e53f6e1c": {
+        "input_tokens": 194,
+        "output_tokens": 83585,
+        "cache_creation_input_tokens": 269299,
+        "cache_read_input_tokens": 10903506
+      }
+    },
+    "origins": [
+      "08f43444f5f0a62c8862e4781da41e228725ca7b",
+      "129d501bc6dd5ce779610ae708eecd2f5e65f0cb",
+      "1a05ff638e7d9d60726e15f644c78353ab38181c",
+      "2106cda007a63bd4d8d23589c3ac7890f50b1e65",
+      "3d3d1069ede62c0cea77e44ab5647bb578e23744",
+      "eaffe0905f880b802f3fc1f148ad12c8815f8e45",
+      "f59f6c3eeec78ac6068ce22ce8b3e877cca492f7"
+    ]
+  },
+  "churn": {
+    "total": 11,
+    "by_tool_model": {
+      "claude::claude-opus-5-5": 3
+    }
+  },
+  "activity": {
+    "added_sloc": 13,
+    "deleted_sloc": 2,
+    "checkpoints": 2,
+    "span_seconds": 2381
+  },
+  "proton_build": "1.7.6-proton.8"
+}
