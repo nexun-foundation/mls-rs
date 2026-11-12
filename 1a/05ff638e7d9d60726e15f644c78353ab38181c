@@ -19,6 +19,20 @@ mls-rs/src/tree_kem/tree_validator.rs
       "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
     }
   },
+  "commit_stats": {
+    "human_additions": 0,
+    "unknown_additions": 0,
+    "ai_additions": 40,
+    "ai_accepted": 40,
+    "git_diff_deleted_lines": 29,
+    "git_diff_added_lines": 40,
+    "tool_model_breakdown": {
+      "claude::claude-opus-5-5": {
+        "ai_additions": 40,
+        "ai_accepted": 40
+      }
+    }
+  },
   "token_usage": {
     "attributable": {
       "total": {
@@ -49,6 +63,18 @@ mls-rs/src/tree_kem/tree_validator.rs
         "cache_read_input_tokens": 2143960
       }
     }
+  },
+  "churn": {
+    "total": 3,
+    "by_tool_model": {
+      "claude::claude-opus-5-5": 3
+    }
+  },
+  "activity": {
+    "added_sloc": 257,
+    "deleted_sloc": 262,
+    "checkpoints": 7,
+    "span_seconds": 151783
   },
   "proton_build": "1.7.6-proton.8"
 }
