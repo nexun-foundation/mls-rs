@@ -371,7 +371,7 @@ pub enum MlsError {
     #[cfg_attr(feature = "std", error("not a subgroup"))]
     NotASubgroup,
     #[cfg_attr(feature = "std", error("{0}"))]
-    NestedError(String),
+    NestedError(alloc::string::String),
     #[cfg_attr(feature = "std", error("{0}"))]
     ImplementationError(&'static str),
 }

@@ -184,7 +184,7 @@ impl MlsRules for TestMlsRules {
         Ok(*self.encryption_options.lock().unwrap())
     }
 
-    /*fn update_components(
+    fn update_components(
         &self,
         _component_id: mls_rs::group::ComponentId,
         _component_data: Option<&[u8]>,
@@ -192,7 +192,7 @@ impl MlsRules for TestMlsRules {
         _roster: &Roster,
     ) -> Result<Vec<u8>, Self::Error> {
         unreachable!()
-    }*/
+    }
 }
 
 #[tonic::async_trait]

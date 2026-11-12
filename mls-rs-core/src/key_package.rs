@@ -82,7 +82,12 @@ pub trait KeyPackageStorage: Send + Sync {
     async fn insert_all(
         &mut self,
         kps: &std::collections::HashMap<Vec<u8>, KeyPackageData>,
-    ) -> Result<(), Self::Error>;
+    ) -> Result<(), Self::Error> {
+        for (id, pkg) in kps {
+            self.insert(id.clone(), pkg.clone()).await?;
+        }
+        Ok(())
+    }
 
     /// Retrieve [`KeyPackageData`] by its `id`.
     ///
