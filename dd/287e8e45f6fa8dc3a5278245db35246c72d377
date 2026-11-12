@@ -1,0 +1,64 @@
+mls-rs/src/group/snapshot.rs
+  s_60ddc8e53f6e1c::t_574c436da20c88 394
+mls-rs/test_harness_integration/Cargo.toml
+  s_60ddc8e53f6e1c::t_51e544a2f00627 9
+mls-rs/test_harness_integration/src/main.rs
+  s_60ddc8e53f6e1c::t_51e544a2f00627 187,195
+mls-rs/src/client.rs
+  s_60ddc8e53f6e1c::t_eb97f563fba19b 374
+mls-rs/src/group/mod.rs
+  s_60ddc8e53f6e1c::t_63dc91a053a569 1564
+mls-rs/src/group/state_repo_light.rs
+  s_60ddc8e53f6e1c::t_eb97f563fba19b 90
+mls-rs/Cargo.toml
+  s_60ddc8e53f6e1c::t_8712f00e477e33 26
+mls-rs-core/src/key_package.rs
+  s_60ddc8e53f6e1c::t_de80645f60c0c8 85-90
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "dd287e8e45f6fa8dc3a5278245db35246c72d377",
+  "prompts": {},
+  "sessions": {
+    "s_60ddc8e53f6e1c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "18e24874-ba01-43b3-aa9b-a8529f1e7840",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "token_usage": {
+    "attributable": {
+      "total": {
+        "input_tokens": 124,
+        "output_tokens": 25878,
+        "cache_creation_input_tokens": 69924,
+        "cache_read_input_tokens": 6302834
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 124,
+          "output_tokens": 25878,
+          "cache_creation_input_tokens": 69924,
+          "cache_read_input_tokens": 6302834
+        }
+      },
+      "tool_uses": {
+        "askuserquestion": 1,
+        "bash": 58
+      }
+    },
+    "by_prompt": {
+      "s_60ddc8e53f6e1c": {
+        "input_tokens": 124,
+        "output_tokens": 25878,
+        "cache_creation_input_tokens": 69924,
+        "cache_read_input_tokens": 6302834
+      }
+    }
+  },
+  "proton_build": "1.7.6-proton.8"
+}
