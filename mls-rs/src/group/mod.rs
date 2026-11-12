@@ -1561,6 +1561,7 @@ where
                 .open(message)
                 .await
                 .map_err(|e| match e {
+                    #[cfg(feature = "std")]
                     MlsError::CryptoProviderError(e) if &e.to_string() == "Rc AEAD Error" => {
                         MlsError::RcAeadError
                     }

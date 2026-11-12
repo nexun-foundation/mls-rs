@@ -8,7 +8,6 @@ use crate::key_package::KeyPackageRef;
 use super::snapshot::{Snapshot, SnapshotRef};
 use alloc::vec::Vec;
 use mls_rs_codec::{MlsDecode, MlsEncode};
-use mls_rs_core::group::EpochRecord;
 use mls_rs_core::{
     error::IntoAnyError,
     group::{GroupState, GroupStateStorage},
@@ -88,7 +87,7 @@ pub trait CoreGroupStateStorage: GroupStateStorage + Send + Sync {
             id: state.state.context.group_id.clone(),
             data: state.into_owned().mls_encode_to_vec()?.into(),
         };
-        self.write(group_state, vec![], vec![])
+        self.write(group_state, Vec::new(), Vec::new())
             .await
             .map_err(|e| MlsError::GroupStorageError(e.into_any_error()))
     }
