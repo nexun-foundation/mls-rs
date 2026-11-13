@@ -1,0 +1,15 @@
+mls-rs-core/src/group/proposal_type.rs
+  h_08516f15d1b646 59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "efed422d0ac3b6d9103917431bea7a24b38302b6",
+  "prompts": {},
+  "humans": {
+    "h_08516f15d1b646": {
+      "author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "proton_build": "1.7.6-proton.8"
+}
