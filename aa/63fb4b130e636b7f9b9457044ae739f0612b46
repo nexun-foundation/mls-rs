@@ -1,0 +1,15 @@
+mls-rs/src/group/component_operation.rs
+  h_08516f15d1b646 17
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "aa63fb4b130e636b7f9b9457044ae739f0612b46",
+  "prompts": {},
+  "humans": {
+    "h_08516f15d1b646": {
+      "author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "proton_build": "1.7.6-proton.8"
+}
