@@ -56,7 +56,7 @@ impl ProposalType {
     pub const EXTERNAL_INIT: ProposalType = ProposalType(6);
     pub const GROUP_CONTEXT_EXTENSIONS: ProposalType = ProposalType(7);
     #[cfg(feature = "self_remove_proposal")]
-    pub const SELF_REMOVE: ProposalType = ProposalType(0xF003);
+    pub const SELF_REMOVE: ProposalType = ProposalType(0x000a);
     #[cfg(feature = "gsma_rcs_e2ee_feature")]
     pub const RCS_SIGNATURE: ProposalType = ProposalType::new(0xF002);
     #[cfg(feature = "gsma_rcs_e2ee_feature")]
