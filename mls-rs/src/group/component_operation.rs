@@ -14,7 +14,7 @@ pub struct ComponentOperationLabel<'a> {
 impl<'a> ComponentOperationLabel<'a> {
     pub fn new(component_id: u16, context: &'a [u8]) -> Self {
         Self {
-            label: b"MLS 1.0 Application",
+            label: b"MLS Component",
             component_id,
             context,
         }
