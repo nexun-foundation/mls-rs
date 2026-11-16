@@ -24,6 +24,20 @@ mls-rs-crypto-webcrypto/src/hkdf.rs
       "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
     }
   },
+  "commit_stats": {
+    "human_additions": 0,
+    "unknown_additions": 0,
+    "ai_additions": 21,
+    "ai_accepted": 21,
+    "git_diff_deleted_lines": 14,
+    "git_diff_added_lines": 21,
+    "tool_model_breakdown": {
+      "claude::claude-opus-5-5": {
+        "ai_additions": 21,
+        "ai_accepted": 21
+      }
+    }
+  },
   "token_usage": {
     "attributable": {
       "total": {
@@ -53,6 +67,11 @@ mls-rs-crypto-webcrypto/src/hkdf.rs
         "cache_read_input_tokens": 4217599
       }
     }
+  },
+  "activity": {
+    "added_sloc": 20,
+    "deleted_sloc": 14,
+    "checkpoints": 1
   },
   "proton_build": "1.7.6-proton.8"
 }
