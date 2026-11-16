@@ -1,0 +1,167 @@
+mls-rs-crypto-openssl/src/kdf.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 71
+mls-rs/src/test_utils/mod.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 91-92
+mls-rs/src/group/mod.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 36-39,116-117,123,143,196,203-207,1004,1034-1056,1069,1076-1085,1091,1281-1307,1526-1532,1614-1622,1689-1696,2090-2109,2248-2251,2254-2257,2274-2276,2311-2314,2508,4275-4276,4322-4323,4504-4505,4512,4517,4935-4941,4943,4966-4972,4974,5104-5110,5112,5131-5137,5139,5161-5168,5259-5265,5267,5390-5396,5399-5400,5554-5560,5563,5995-5996,6053-6054,6606-6607,6615-6616,6755-6756,6815-6825,7031-7040
+mls-rs/src/group/state_repo.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 176,183-187,197,232-234,236-246,251,308,376,444,459,505,525,542-543,561,563
+mls-rs-uniffi/src/lib.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 368-369,394,601-603,605-606
+mls-rs/src/group/proposal_cache.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 38,285-288,296-297,315,3744-3754,3806-3816,3862-3871
+mls-rs-core/src/group/proposal_type.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 64-66
+mls-rs-crypto-awslc/src/lib.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 418
+mls-rs/src/group/proposal_filter/bundle.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 12-13,63-66,121-134,268-270,330-343,354-385,425,436-452,514-525,576-585,825-832
+mls-rs/src/group/util.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 203,205-206
+mls-rs/test_harness_integration/src/main.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 829
+mls-rs/examples/basic_server_usage.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 120-121
+mls-rs/src/group/test_utils.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 71,262-263,306-307,369-370,463
+mls-rs/src/group/state.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 16,26
+mls-rs/examples/large_group.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 163-164
+mls-rs-crypto-awslc/src/kdf.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 35
+mls-rs-core/src/crypto.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 139,164,312
+mls-rs-crypto-rustcrypto/src/aead.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 65
+mls-rs-crypto-traits/src/kdf.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 13
+mls-rs/examples/custom.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 183-193,373-374
+mls-rs/src/group/message_processor.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 11-12,44-45,66,286-288,293-294,300-306,457-460,773,776-777,784-785,826-839,856-857
+mls-rs-crypto-openssl/src/lib.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 179
+mls-rs/src/group/interop_test_vectors/passive_client.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 181-182,253-254
+mls-rs-crypto-hpke/src/dhkem.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 66
+mls-rs-core/src/extension/list.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 19
+mls-rs-crypto-hpke/src/context.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 81,111
+mls-rs-crypto-awslc/src/kem/ecdh.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 40-43
+mls-rs/src/group/resumption.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 28,31-33,128,141-142,154-157
+mls-rs-crypto-webcrypto/src/ec/ecdh.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 137
+mls-rs-crypto-webcrypto/src/hkdf.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 42
+mls-rs/src/group/group_info.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 56-59
+mls-rs/examples/x509.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 31-32
+mls-rs/tests/client_tests.rs
+  s_d08c2f8539d57e::t_3fa9ff17c77dfb 980
+  s_d08c2f8539d57e::t_df07ac8743f0c1 9,17-24,987-1063,1065-1067,1069-1100,1102-1107,1113-1134,1136-1142,1144-1146,1148,1150-1600
+mls-rs/src/group/mls_rules.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 15-17,29-30,41,43-44,202-226,285-296,384-392
+mls-rs/src/tree_kem/hpke_encryption.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 17,40-46,50-53
+mls-rs/src/group/proposal_filter/filtering.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 21,39-43,45-48,72,77,122-130,191-201,319-395,647-707,756-766
+mls-rs-crypto-traits/src/kem.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 21
+mls-rs-crypto-traits/src/dh.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 24
+mls-rs-core/src/group/group_state.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 15,18
+mls-rs-crypto-webcrypto/src/lib.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 131
+mls-rs-provider-sqlite/src/key_package.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 11,151-156
+mls-rs-crypto-awslc/src/aead.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 30
+mls-rs/src/group/proposal.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 27-29,401-516,542-545,568-571,611-614,647-655,686-689,714-717,742-750,775-778,803-806,868-881,893
+mls-rs-crypto-cryptokit/src/aead.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 99
+mls-rs-core/src/crypto/cipher_suite.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 53-58
+mls-rs/src/group/exported_tree.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 7
+mls-rs/src/storage_provider/in_memory/key_package_storage.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 24,109-114
+mls-rs-crypto-openssl/src/ecdh.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 54
+mls-rs-crypto-rustcrypto/src/ecdh.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 61
+mls-rs-crypto-rustcrypto/src/kdf.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 60
+mls-rs/src/group/roster.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 40-46
+mls-rs/src/group/framing.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 134,150-152,163-165,298,402-403,413,420-427,430,438,445-452,477,686,719
+mls-rs/src/client_builder.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 109-110,139-140,173-174,211,229,334,358,385,410,435,463,479-487,497,546,549,705,757-760,772-774,817,865-866,889,919-920,994-995
+mls-rs/examples/basic_usage.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 35-36
+mls-rs/src/group/application_data.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 1-72
+mls-rs/src/psk/secret.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 29
+mls-rs-core/src/key_package.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 9,81-82
+mls-rs-crypto-webcrypto/src/aead.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 29
+mls-rs/src/group/snapshot.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 37,41,105,199-200,202,212,219,234
+mls-rs/Cargo.toml
+  s_d08c2f8539d57e::t_df07ac8743f0c1 19,36
+mls-rs/src/key_package/mod.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 39
+mls-rs/src/signer.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 14,37-43,47
+mls-rs/src/lib.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 133,165,186,192-194,210
+mls-rs-crypto-cryptokit/src/kdf.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 136
+mls-rs/src/psk.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 34,57,65,82,110,120
+mls-rs-crypto-openssl/src/aead.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 66
+mls-rs/src/client.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 38,280-284,363-369,408-409,426,429-430,436,446,453-489,510,512-518,529-530,532,536-537,560-561,563-568,752,762,826-854,887-891,893-899,932-933,937-938,964-979,1027-1028,1084-1085,1123-1124,1198-1199,1364-1365,1394-1395
+mls-rs/src/group/proposal_filter/filtering_common.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 16,51,58-59,72,77,87,96,516
+mls-rs/src/tree_kem/path_secret.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 163-164
+mls-rs-crypto-rustcrypto/src/lib.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 197
+mls-rs/src/group/external_commit.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 9-10,55-56,68,77-78,118-167,335-338
+mls-rs/src/external_client/group.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 83-87,443-463,658-661
+mls-rs/src/group/commit.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 11-12,24-26,30-32,65-67,71,77,83,128-129,185,280-307,363-373,382-389,418,444,536,554,578,637,640-644,667-677,687,707-716,741-742,929-942,976-977,989,1000,1093,1524-1596,1957-1958
+mls-rs-crypto-traits/src/aead.rs
+  s_d08c2f8539d57e::t_df07ac8743f0c1 16
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "b2de3b11adaa9305e2f1586a621f475c21a757d0",
+  "prompts": {},
+  "sessions": {
+    "s_d08c2f8539d57e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e0d8bb87-24d6-4529-975e-e3fed147236f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "proton_build": "1.7.6-proton.8"
+}
