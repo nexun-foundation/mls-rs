@@ -10,7 +10,7 @@ use aes_gcm::{Aes128Gcm, Aes256Gcm, KeyInit};
 use chacha20poly1305::ChaCha20Poly1305;
 use mls_rs_core::{crypto::CipherSuite, error::IntoAnyError};
 use mls_rs_crypto_traits::{AeadId, AeadType, AES_TAG_LEN};
-use rc_aead::{generic_array::GenericArray, Payload};
+use rc_aead::{Nonce, Payload};
 
 use alloc::vec::Vec;
 
@@ -31,6 +31,11 @@ pub enum AeadError {
         error("AEAD key of invalid length {0}. Expected length {1}")
     )]
     InvalidKeyLen(usize, usize),
+    #[cfg_attr(
+        feature = "std",
+        error("AEAD nonce of invalid length {0}. Expected length {1}")
+    )]
+    InvalidNonceLen(usize, usize),
     #[cfg_attr(feature = "std", error("unsupported cipher suite"))]
     UnsupportedCipherSuite,
 }
@@ -85,17 +90,10 @@ impl AeadType for Aead {
             .ok_or_else(|| AeadError::InvalidKeyLen(key.len(), self.key_size()))?;
 
         match self.0 {
-            AeadId::Aes128Gcm => {
-                let cipher = Aes128Gcm::new(GenericArray::from_slice(key));
-                encrypt_aead_trait(cipher, data, aad, nonce)
-            }
-            AeadId::Aes256Gcm => {
-                let cipher = Aes256Gcm::new(GenericArray::from_slice(key));
-                encrypt_aead_trait(cipher, data, aad, nonce)
-            }
+            AeadId::Aes128Gcm => encrypt_aead_trait::<Aes128Gcm>(key, data, aad, nonce),
+            AeadId::Aes256Gcm => encrypt_aead_trait::<Aes256Gcm>(key, data, aad, nonce),
             AeadId::Chacha20Poly1305 => {
-                let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(key));
-                encrypt_aead_trait(cipher, data, aad, nonce)
+                encrypt_aead_trait::<ChaCha20Poly1305>(key, data, aad, nonce)
             }
             _ => Err(AeadError::UnsupportedCipherSuite),
         }
@@ -118,17 +116,10 @@ impl AeadType for Aead {
             .ok_or_else(|| AeadError::InvalidKeyLen(key.len(), self.key_size()))?;
 
         match self.0 {
-            AeadId::Aes128Gcm => {
-                let cipher = Aes128Gcm::new(GenericArray::from_slice(key));
-                decrypt_aead_trait(cipher, ciphertext, aad, nonce)
-            }
-            AeadId::Aes256Gcm => {
-                let cipher = Aes256Gcm::new(GenericArray::from_slice(key));
-                decrypt_aead_trait(cipher, ciphertext, aad, nonce)
-            }
+            AeadId::Aes128Gcm => decrypt_aead_trait::<Aes128Gcm>(key, ciphertext, aad, nonce),
+            AeadId::Aes256Gcm => decrypt_aead_trait::<Aes256Gcm>(key, ciphertext, aad, nonce),
             AeadId::Chacha20Poly1305 => {
-                let cipher = ChaCha20Poly1305::new(GenericArray::from_slice(key));
-                decrypt_aead_trait(cipher, ciphertext, aad, nonce)
+                decrypt_aead_trait::<ChaCha20Poly1305>(key, ciphertext, aad, nonce)
             }
             _ => Err(AeadError::UnsupportedCipherSuite),
         }
@@ -148,32 +139,46 @@ impl AeadType for Aead {
     }
 }
 
-fn encrypt_aead_trait(
-    cipher: impl rc_aead::Aead,
+#[inline(always)]
+fn init_aead_trait<A: rc_aead::Aead + KeyInit>(
+    key: &[u8],
+    nonce: &[u8],
+) -> Result<(A, Nonce<A>), AeadError> {
+    let cipher =
+        A::new_from_slice(key).map_err(|_| AeadError::InvalidKeyLen(key.len(), A::key_size()))?;
+    let nonce = Nonce::<A>::try_from(nonce)
+        .map_err(|_| AeadError::InvalidNonceLen(nonce.len(), size_of::<Nonce<A>>()))?;
+    Ok((cipher, nonce))
+}
+
+fn encrypt_aead_trait<A: rc_aead::Aead + KeyInit>(
+    key: &[u8],
     data: &[u8],
     aad: Option<&[u8]>,
     nonce: &[u8],
 ) -> Result<Vec<u8>, AeadError> {
+    let (cipher, nonce) = init_aead_trait::<A>(key, nonce)?;
     let payload = Payload {
         msg: data,
         aad: aad.unwrap_or_default(),
     };
 
-    Ok(cipher.encrypt(GenericArray::from_slice(nonce), payload)?)
+    Ok(cipher.encrypt(&nonce, payload)?)
 }
 
-fn decrypt_aead_trait(
-    cipher: impl rc_aead::Aead,
+fn decrypt_aead_trait<A: rc_aead::Aead + KeyInit>(
+    key: &[u8],
     ciphertext: &[u8],
     aad: Option<&[u8]>,
     nonce: &[u8],
 ) -> Result<Vec<u8>, AeadError> {
+    let (cipher, nonce) = init_aead_trait::<A>(key, nonce)?;
     let payload = Payload {
         msg: ciphertext,
         aad: aad.unwrap_or_default(),
     };
 
-    Ok(cipher.decrypt(GenericArray::from_slice(nonce), payload)?)
+    Ok(cipher.decrypt(&nonce, payload)?)
 }
 
 #[cfg(all(not(mls_build_async), test))]

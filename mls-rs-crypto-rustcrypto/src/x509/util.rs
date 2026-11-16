@@ -26,7 +26,7 @@ use x509_cert::{
         },
         Extension,
     },
-    name::{RdnSequence, RelativeDistinguishedName},
+    name::{Name, RdnSequence, RelativeDistinguishedName},
     request::ExtensionReq,
 };
 
@@ -142,7 +142,7 @@ pub fn general_names_to_alt_names(
         .collect()
 }
 
-pub(crate) fn build_x509_name(components: &[SubjectComponent]) -> Result<RdnSequence, X509Error> {
+pub(crate) fn build_x509_name(components: &[SubjectComponent]) -> Result<Name, X509Error> {
     let attributes = components
         .iter()
         .map(|c| {
@@ -181,14 +181,14 @@ pub(crate) fn build_x509_name(components: &[SubjectComponent]) -> Result<RdnSequ
         })
         .collect::<Result<Vec<_>, X509Error>>()?;
 
-    Ok(attributes.into())
+    // `Name` is only constructible by decoding, which validates it against RFC 5280
+    Ok(Name::from_der(&RdnSequence::from(attributes).to_der()?)?)
 }
 
-pub(super) fn parse_x509_name(rdns: &RdnSequence) -> Result<Vec<SubjectComponent>, X509Error> {
-    rdns.0
-        .iter()
+pub(super) fn parse_x509_name(name: &Name) -> Result<Vec<SubjectComponent>, X509Error> {
+    name.iter_rdn()
         .map(|rdn| {
-            let type_and_value = rdn.0.get(0).unwrap();
+            let type_and_value = rdn.iter().next().unwrap();
 
             let value = match type_and_value.value.tag() {
                 Tag::PrintableString => {

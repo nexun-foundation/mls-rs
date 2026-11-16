@@ -34,7 +34,7 @@ use mls_rs::{Client, CryptoProvider};
 use mls_rs_core::crypto::CipherSuiteProvider;
 use mls_rs_core::identity::BasicCredential;
 use rand::prelude::IndexedMutRandom;
-use rand::RngCore;
+use rand::Rng;
 
 use mls_rs::test_utils::{all_process_message, get_test_basic_credential};
 
@@ -339,7 +339,7 @@ async fn test_remove_proposals(
 
     // Remove people from the group one at a time
     while groups.len() > 1 {
-        let removed_and_committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 2);
+        let removed_and_committer = (0..groups.len()).sample(&mut rand::rng(), 2);
 
         let to_remove = removed_and_committer[0];
         let committer = removed_and_committer[1];
@@ -978,7 +978,7 @@ async fn test_application_data_proposals(
     )
     .await;
 
-    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
+    let committer = (0..groups.len()).sample(&mut rand::rng(), 1)[0];
 
     let commit_output = groups[committer]
         .commit_builder()
@@ -1064,7 +1064,7 @@ async fn test_application_data_update_proposals(
     )
     .await;
 
-    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
+    let committer = (0..groups.len()).sample(&mut rand::rng(), 1)[0];
     let commit_output = groups[committer]
         .commit_builder()
         .application_data_update(10, AppDataUpdateOperation::Update(b"hello".to_vec()))
@@ -1098,7 +1098,7 @@ async fn test_application_data_update_proposals(
         }
     );
 
-    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
+    let committer = (0..groups.len()).sample(&mut rand::rng(), 1)[0];
     let commit_output = groups[committer]
         .commit_builder()
         .application_data_update(10, AppDataUpdateOperation::Update(b"world".to_vec()))
@@ -1163,7 +1163,7 @@ async fn test_application_data_update_invalid_proposals(
     )
     .await;
 
-    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
+    let committer = (0..groups.len()).sample(&mut rand::rng(), 1)[0];
     // unknown component id
     let err = groups[committer]
         .commit_builder()
@@ -1284,7 +1284,7 @@ async fn test_application_data_update_external_proposals(
     }
 
     // one of the members commits the proposal and sends to other members
-    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
+    let committer = (0..groups.len()).sample(&mut rand::rng(), 1)[0];
     let commit_output = groups[committer].commit_builder().build().await.unwrap();
 
     let sender = groups[committer].current_member_index() as usize;

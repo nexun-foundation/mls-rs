@@ -65,7 +65,7 @@ pub(crate) mod test_utils {
 
     use alloc::vec;
     use mls_rs_core::{crypto::SignaturePublicKey, error::IntoAnyError, identity::SigningIdentity};
-    use rand::{rng, Rng};
+    use rand::{rng, RngExt};
 
     use crate::{CertificateChain, DerCertificate};
 

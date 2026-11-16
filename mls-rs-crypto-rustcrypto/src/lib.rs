@@ -29,7 +29,6 @@ use mls_rs_crypto_hpke::{
     hpke::{Hpke, HpkeError},
 };
 use mls_rs_crypto_traits::{AeadType, KdfType, KemId, KemType};
-use rand_core::{OsRng, RngCore};
 
 use mls_rs_core::{
     crypto::{
@@ -57,14 +56,14 @@ pub enum RustCryptoError {
     KdfError(AnyError),
     #[cfg_attr(feature = "std", error(transparent))]
     HashError(HashError),
-    #[cfg_attr(feature = "std", error("rand core error: {0:?}"))]
-    RandError(rand_core::Error),
+    #[cfg_attr(feature = "std", error("getrandom error: {0:?}"))]
+    RandError(getrandom::Error),
     #[cfg_attr(feature = "std", error(transparent))]
     EcSignerError(EcSignerError),
 }
 
-impl From<rand_core::Error> for RustCryptoError {
-    fn from(value: rand_core::Error) -> Self {
+impl From<getrandom::Error> for RustCryptoError {
+    fn from(value: getrandom::Error) -> Self {
         RustCryptoError::RandError(value)
     }
 }
@@ -189,7 +188,7 @@ where
     }
 
     pub fn random_bytes(&self, out: &mut [u8]) -> Result<(), RustCryptoError> {
-        OsRng.try_fill_bytes(out).map_err(Into::into)
+        getrandom::fill(out).map_err(Into::into)
     }
 }
 

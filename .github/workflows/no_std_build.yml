@@ -31,5 +31,5 @@ jobs:
       run: cargo +nightly build --package mls-rs --lib --no-default-features --features rfc_compliant --target thumbv6m-none-eabi
       continue-on-error: true # not needed
     - name: Build rust crypto embedded
-      run: cargo +nightly build --package mls-rs-crypto-rustcrypto --no-default-features --features "getrandom/custom" --target thumbv6m-none-eabi
+      run: RUSTFLAGS='--cfg getrandom_backend="custom"' cargo +nightly build --package mls-rs-crypto-rustcrypto --no-default-features --target thumbv6m-none-eabi
       continue-on-error: true # not needed

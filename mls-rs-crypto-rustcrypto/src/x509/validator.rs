@@ -54,7 +54,7 @@ impl X509Validator {
                 // Verify the self-signture. Time is validated when CAs are used
                 let cert = Certificate::from_der(&cert_data)?;
                 verify_cert(&cert, &cert, None)?;
-                let subject = cert.tbs_certificate.subject.to_der()?;
+                let subject = cert.tbs_certificate().subject().to_der()?;
                 Ok((subject, cert_data))
             })
             .collect::<Result<_, X509Error>>()?;
@@ -102,7 +102,7 @@ impl X509Validator {
         {
             let maybe_ca = self
                 .root_ca_list
-                .get(&cert1.tbs_certificate.issuer.to_der()?);
+                .get(&cert1.tbs_certificate().issuer().to_der()?);
 
             let verifier = maybe_ca
                 .map(|ca| {
@@ -124,7 +124,7 @@ impl X509Validator {
                 let leaf_cert = chain.first().ok_or(X509Error::EmptyCertificateChain)?;
 
                 let pub_key =
-                    pub_key_from_spki(&leaf_cert.tbs_certificate.subject_public_key_info)?;
+                    pub_key_from_spki(leaf_cert.tbs_certificate().subject_public_key_info())?;
 
                 let pub_signing_key = pub_key_to_uncompressed(&pub_key).map(Into::into)?;
 
@@ -137,7 +137,7 @@ impl X509Validator {
 }
 
 fn verify_time(cert: &Certificate, timestamp: MlsTime) -> Result<(), X509Error> {
-    let validity = cert.tbs_certificate.validity;
+    let validity = cert.tbs_certificate().validity();
     let not_before = MlsTime::from(validity.not_before.to_unix_duration());
     let not_after = MlsTime::from(validity.not_after.to_unix_duration());
 
@@ -159,18 +159,22 @@ fn verify_cert(
 ) -> Result<(), X509Error> {
     // Re-encode the verified TBS struct to get the signed bytes
     let mut tbs = Vec::new();
-    verified.tbs_certificate.encode_to_vec(&mut tbs)?;
+    verified.tbs_certificate().encode_to_vec(&mut tbs)?;
 
     // Create a signer for the verifier
-    let signer =
-        signer_from_algorithm(&verifier.tbs_certificate.subject_public_key_info.algorithm)?;
+    let signer = signer_from_algorithm(
+        &verifier
+            .tbs_certificate()
+            .subject_public_key_info()
+            .algorithm,
+    )?;
 
-    let pub_key = pub_key_from_spki(&verifier.tbs_certificate.subject_public_key_info)?;
+    let pub_key = pub_key_from_spki(verifier.tbs_certificate().subject_public_key_info())?;
 
     // Verify the signature
     signer.verify(
         &pub_key_to_uncompressed(&pub_key).map(Into::into)?,
-        verified.signature.raw_bytes(),
+        verified.signature().raw_bytes(),
         &tbs,
     )?;
 
@@ -194,7 +198,7 @@ fn validate_self_signed(
 
     verify_cert(&cert, &cert, timestamp)?;
 
-    let pub_key = pub_key_from_spki(&cert.tbs_certificate.subject_public_key_info)?;
+    let pub_key = pub_key_from_spki(cert.tbs_certificate().subject_public_key_info())?;
 
     let pub_signing_key = pub_key_to_uncompressed(&pub_key).map(Into::into)?;
 
@@ -428,8 +432,8 @@ mod tests {
 
         let expected = Certificate::from_der(chain.leaf().unwrap())
             .unwrap()
-            .tbs_certificate
-            .subject_public_key_info
+            .tbs_certificate()
+            .subject_public_key_info()
             .subject_public_key
             .raw_bytes()
             .to_vec()
