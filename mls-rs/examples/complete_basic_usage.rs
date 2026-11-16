@@ -51,7 +51,7 @@ fn create_client(name: &str) -> (Client<impl MlsConfig>, InMemoryPreSharedKeySto
                 .with_encryption_options(EncryptionOptions::new(true, PaddingMode::StepFunction))
                 .with_commit_options(CommitOptions::new().with_path_required(true)),
         )
-        .signing_identity(signing_identity, secret_key, CIPHERSUITE)
+        .signing_identity(signing_identity, secret_key)
         .build();
 
     (client, psk_store)
@@ -94,7 +94,7 @@ fn main() -> Result<(), MlsError> {
     assert_eq!(carl_secret, ann_secret);
 
     // 💬 End-to-end encrypted messaging with authentication
-    let msg =
+    let (msg, _) =
         carl_group.encrypt_application_message(b"Hello, world!", b"authenticated data".into())?;
 
     // 🔓 Lara decrypts and verifies the message
@@ -149,7 +149,7 @@ fn main() -> Result<(), MlsError> {
     let (mut zoe_group, external_commit) = zoe.commit_external(group_info)?;
     carl_group.process_incoming_message(external_commit)?;
 
-    let msg = zoe_group.encrypt_application_message(b"hello", vec![])?;
+    let (msg, _) = zoe_group.encrypt_application_message(b"hello", vec![])?;
     let carl_msg = carl_group.process_incoming_message(msg)?;
     assert_matches!(carl_msg, ReceivedMessage::ApplicationMessage(text) if text.data() == b"hello");
 

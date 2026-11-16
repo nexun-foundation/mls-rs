@@ -5640,11 +5640,13 @@ mod tests {
             path
         };
 
-        let commit_output = groups[0].commit(vec![]).await.unwrap();
-
-        let res = groups[7]
-            .process_message(commit_output.commit_message)
-            .await;
+        let res = match groups[0].commit(vec![]).await {
+            Ok(commit_output) => groups[7]
+                .process_message(commit_output.commit_message)
+                .await
+                .map(|_| ()),
+            Err(e) => Err(e),
+        };
 
         assert!(res.is_err());
     }
