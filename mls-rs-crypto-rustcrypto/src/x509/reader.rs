@@ -33,8 +33,8 @@ impl X509CertificateReader for X509Reader {
 
     fn subject_bytes(&self, certificate: &DerCertificate) -> Result<Vec<u8>, Self::Error> {
         Certificate::from_der(certificate)?
-            .tbs_certificate
-            .subject
+            .tbs_certificate()
+            .subject()
             .to_der()
             .map_err(Into::into)
     }
@@ -43,7 +43,11 @@ impl X509CertificateReader for X509Reader {
         &self,
         certificate: &DerCertificate,
     ) -> Result<Vec<SubjectComponent>, Self::Error> {
-        parse_x509_name(&Certificate::from_der(certificate)?.tbs_certificate.subject)
+        parse_x509_name(
+            Certificate::from_der(certificate)?
+                .tbs_certificate()
+                .subject(),
+        )
     }
 
     fn subject_alt_names(
@@ -51,10 +55,10 @@ impl X509CertificateReader for X509Reader {
         certificate: &DerCertificate,
     ) -> Result<Vec<MlsSubjectAltName>, Self::Error> {
         Ok(Certificate::from_der(certificate)?
-            .tbs_certificate
-            .extensions
-            .unwrap_or_default()
-            .iter()
+            .tbs_certificate()
+            .extensions()
+            .into_iter()
+            .flatten()
             .filter(|ext| ext.extn_id == SubjectAltName::OID)
             .map(|ext| {
                 general_names_to_alt_names(&GeneralNames::from_der(ext.extn_value.as_bytes())?)
@@ -69,11 +73,8 @@ impl X509CertificateReader for X509Reader {
         &self,
         certificate: &DerCertificate,
     ) -> Result<mls_rs_core::crypto::SignaturePublicKey, Self::Error> {
-        let spki = Certificate::from_der(certificate)?
-            .tbs_certificate
-            .subject_public_key_info;
-
-        let pub_key = pub_key_from_spki(&spki)?;
+        let certificate = Certificate::from_der(certificate)?;
+        let pub_key = pub_key_from_spki(certificate.tbs_certificate().subject_public_key_info())?;
 
         pub_key_to_uncompressed(&pub_key)
             .map_err(Into::into)
