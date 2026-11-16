@@ -1,0 +1,76 @@
+mls-rs/examples/complete_basic_usage.rs
+  s_d08c2f8539d57e::t_cde83bfb33eaea 54,97,152
+mls-rs/src/client.rs
+  s_d08c2f8539d57e::t_0c3db6ab04d944 1285
+mls-rs/src/group/mls_rules.rs
+  s_d08c2f8539d57e::t_466aeb6225361e 18-20,209-210,284-297,386-396
+mls-rs/src/group/mod.rs
+  s_d08c2f8539d57e::t_e3865c64450955 5643-5649
+mls-rs/tests/client_tests.rs
+  s_d08c2f8539d57e::t_35f5b24ad79f77 952-1002
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "f0780e5b3b48e4d0a867357316f03b1ea2b7f3e8",
+  "prompts": {},
+  "sessions": {
+    "s_d08c2f8539d57e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e0d8bb87-24d6-4529-975e-e3fed147236f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "commit_stats": {
+    "human_additions": 0,
+    "unknown_additions": 0,
+    "ai_additions": 92,
+    "ai_accepted": 92,
+    "git_diff_deleted_lines": 14,
+    "git_diff_added_lines": 92,
+    "tool_model_breakdown": {
+      "claude::claude-opus-5-5": {
+        "ai_additions": 92,
+        "ai_accepted": 92
+      }
+    }
+  },
+  "token_usage": {
+    "attributable": {
+      "total": {
+        "input_tokens": 6,
+        "output_tokens": 937,
+        "cache_creation_input_tokens": 3806,
+        "cache_read_input_tokens": 495647
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 6,
+          "output_tokens": 937,
+          "cache_creation_input_tokens": 3806,
+          "cache_read_input_tokens": 495647
+        }
+      },
+      "tool_uses": {
+        "askuserquestion": 1,
+        "bash": 11,
+        "write": 1
+      }
+    },
+    "by_prompt": {
+      "s_d08c2f8539d57e": {
+        "input_tokens": 6,
+        "output_tokens": 937,
+        "cache_creation_input_tokens": 3806,
+        "cache_read_input_tokens": 495647
+      }
+    },
+    "origins": [
+      "8ccdef47654dfeea9ab74dc0b54cc05127e51677"
+    ]
+  },
+  "proton_build": "1.7.6-proton.8"
+}
