@@ -1,0 +1,186 @@
+.github/workflows/features.yml
+  s_d08c2f8539d57e::t_265a06951f83da 10
+.github/workflows/native_build.yml
+  s_d08c2f8539d57e::t_418aab4f67bfd7 12,55-61,123-124,158,187-192
+.github/workflows/no_std_build.yml
+  s_d08c2f8539d57e::t_c90266fd9eb62e 9-37
+.github/workflows/wasm_build.yml
+  s_d08c2f8539d57e::t_f51ef5505eb907 2,15
+mls-rs-codec/Cargo.toml
+  s_d08c2f8539d57e::t_c2f22d50657313 3
+mls-rs-codec/src/lib.rs
+  s_d08c2f8539d57e::t_45a569482cd30a 55-56,127-140,149-187
+mls-rs-crypto-awslc/Cargo.toml
+  s_d08c2f8539d57e::t_38294b3fc0e2c1 3,18-20,22,24,32
+mls-rs-crypto-awslc/src/hmac.rs
+  s_d08c2f8539d57e::t_a6e485a3daef08 7,37
+mls-rs-crypto-awslc/src/kem/ml_kem.rs
+  s_d08c2f8539d57e::t_81c47f38bd92b7 70-75,84,94,132,143-146,159,163,228
+mls-rs-crypto-awslc/src/lib.rs
+  s_d08c2f8539d57e::t_900a7158e46d66 504,506,508,523,525,527,543,548,553,572,577,582,594,596,598,613,618,623,631,633,635,642,644,646
+mls-rs-crypto-awslc/tests/cipher_suite_builder.rs
+  s_d08c2f8539d57e::t_2933d4702f7b15 1-2
+mls-rs-crypto-hpke/Cargo.toml
+  s_d08c2f8539d57e::t_2860bdd7f6f6c4 3,35
+mls-rs-crypto-hpke/src/context.rs
+  s_d08c2f8539d57e::t_c7f55c39b6df31 20,38,155,172-176
+mls-rs-crypto-hpke/src/hpke.rs
+  s_d08c2f8539d57e::t_6eb3d2e5ef16e7 278-279,303-304
+mls-rs-crypto-hpke/src/kem_combiner.rs
+  s_d08c2f8539d57e::t_406e4db66ac101 37,42,47,52
+mls-rs-crypto-hpke/src/test_utils.rs
+  s_d08c2f8539d57e::t_9442def104f406 31,35
+mls-rs-crypto-openssl/Cargo.toml
+  s_d08c2f8539d57e::t_02216217eee535 3,19-20,32
+mls-rs-crypto-rustcrypto/Cargo.toml
+  s_d08c2f8539d57e::t_702277f2d7ce0c 3,13-14,28,35,38-40,43-45,48-51,55,66
+mls-rs-crypto-rustcrypto/src/aead.rs
+  s_d08c2f8539d57e::t_9cf48eddba3e18 13,34-38,94-96,100-102,106-108,133-135,139-141,145-147,168-175,185,188-189,199
+mls-rs-crypto-rustcrypto/src/ec.rs
+  s_d08c2f8539d57e::t_9358404ec571ce 19-20,55,74-76,99-101,109-111,120-121,126-129,131-133,135,138-141
+mls-rs-crypto-rustcrypto/src/lib.rs
+  s_d08c2f8539d57e::t_9153f71ee8cbbe 24,61,66-67,192
+mls-rs-crypto-rustcrypto/src/mac.rs
+  s_d08c2f8539d57e::t_8696d165bb00dc 5-6,8,72
+mls-rs-crypto-rustcrypto/src/x509.rs
+  s_d08c2f8539d57e::t_fbd8deb762ea62 5-10,38,83-90,125-126
+mls-rs-crypto-rustcrypto/src/x509/util.rs
+  s_d08c2f8539d57e::t_f4709319cf9c33 31,120-180,372-494
+mls-rs-crypto-rustcrypto/src/x509/validator.rs
+  s_d08c2f8539d57e::t_8884b669b06573 19,99,102,121-122,228-247,250-252,254-262,452-1052
+mls-rs-crypto-rustcrypto/test_data/x509/ca_missing_basic_constraints/key.pem
+  s_d08c2f8539d57e::t_433e2928ccc900 1-3
+mls-rs-crypto-rustcrypto/test_data/x509/intermediate_ca_for_pathlen0/key.pem
+  s_d08c2f8539d57e::t_5451a1b93c5257 1-3
+mls-rs-crypto-rustcrypto/test_data/x509/intermediate_ca_missing_key_usage/key.pem
+  s_d08c2f8539d57e::t_138891fc46204f 1-3
+mls-rs-crypto-rustcrypto/test_data/x509/leaf_of_ca_missing_basic_constraints/key.pem
+  s_d08c2f8539d57e::t_915148bbce6e59 1-3
+mls-rs-crypto-rustcrypto/test_data/x509/leaf_of_intermediate_missing_key_usage/key.pem
+  s_d08c2f8539d57e::t_3ad467b1c6d0db 1-3
+mls-rs-crypto-rustcrypto/test_data/x509/leaf_of_pathlen0_chain/key.pem
+  s_d08c2f8539d57e::t_cb5c2474afbc93 1-3
+mls-rs-crypto-rustcrypto/test_data/x509/root_ca/cert.srl
+  s_d08c2f8539d57e::t_f0b9a0b76a4a70 1
+mls-rs-crypto-rustcrypto/test_data/x509/root_ca_pathlen0/key.pem
+  s_d08c2f8539d57e::t_e3cbd82fcea70d 1-3
+mls-rs-crypto-webcrypto/Cargo.toml
+  s_d08c2f8539d57e::t_f202ba2076f990 3,13
+mls-rs-crypto-webcrypto/src/ec/ecdsa.rs
+  s_d08c2f8539d57e::t_0996457653362b 90,110-112,117-120,167-200
+mls-rs-ffi/Cargo.toml
+  s_d08c2f8539d57e::t_a6acef46ecdef9 3,28-31
+mls-rs-identity-x509/Cargo.toml
+  s_d08c2f8539d57e::t_e3f8d934c7b950 3,27,31
+mls-rs-identity-x509/src/lib.rs
+  s_d08c2f8539d57e::t_c6b0244e08930e 86
+mls-rs-provider-sqlite/Cargo.toml
+  s_d08c2f8539d57e::t_0602a35ea7508e 3,16,25
+mls-rs-provider-sqlite/src/test_utils.rs
+  s_d08c2f8539d57e::t_b9294f6c112ecf 5-6
+mls-rs-uniffi/Cargo.toml
+  s_d08c2f8539d57e::t_1fca896180efc8 3,20,22
+mls-rs/Cargo.toml
+  s_d08c2f8539d57e::t_ae6c6145139735 3,31,61,73-74,84,103,109-110,114,116,118,144-146
+mls-rs/benches/group_application.rs
+  s_d08c2f8539d57e::t_96460a82db79d8 7
+mls-rs/examples/complete_basic_usage.rs
+  s_d08c2f8539d57e::t_5852ff74f0f680 1-157
+mls-rs/fuzz/Cargo.toml
+  s_d08c2f8539d57e::t_071d59e6d2fdeb 14
+mls-rs/src/client.rs
+  s_d08c2f8539d57e::t_15c1b76f80f221 1050-1054,1268-1353
+mls-rs/src/external_client/group.rs
+  s_d08c2f8539d57e::t_ff5989f445b77a 587-597,940,1442-1496
+mls-rs/src/group/builder.rs
+  s_d08c2f8539d57e::t_aa7895106247bb 47-48,72-73,123-139,146,185-190
+mls-rs/src/group/exported_tree.rs
+  s_d08c2f8539d57e::t_17c32442e413a0 107-115,172-178
+mls-rs/src/group/framing.rs
+  s_d08c2f8539d57e::t_38de4fdadc84fa 7-11,539-540,543,578-607,676-687,935-951
+mls-rs/src/group/interop_test_vectors/passive_client.rs
+  s_d08c2f8539d57e::t_9f00d648044416 16,309-318,538,621
+mls-rs/src/group/mls_rules.rs
+  s_d08c2f8539d57e::t_11a2990844d4cf 18-20,209-210,280-282,381-382,384
+mls-rs/src/group/mod.rs
+  s_d08c2f8539d57e::t_b499879df6699d 2759-2784,5643-5649
+mls-rs/src/group/proposal_cache.rs
+  s_d08c2f8539d57e::t_f97522ed451131 895
+mls-rs/src/group/proposal_filter.rs
+  s_d08c2f8539d57e::t_efb9564341dd75 44
+mls-rs/src/group/proposal_filter/bundle.rs
+  s_d08c2f8539d57e::t_092b58475eef9b 30
+mls-rs/src/group/proposal_filter/filtering.rs
+  s_d08c2f8539d57e::t_b7451879f9ff6e 72-79,96,176-179,192,227,239-241,243-247,249-252,257-262,283-325,442-454,922-925,928-940,1102-1237
+mls-rs/src/group/resumption.rs
+  s_d08c2f8539d57e::t_52b5a822756135 251-252
+mls-rs/src/group/state.rs
+  s_d08c2f8539d57e::t_9b63d79e076828 14,48-51
+mls-rs/src/group/test_utils.rs
+  s_d08c2f8539d57e::t_2a0275f69fb601 9,41-46
+mls-rs/src/test_utils/benchmarks.rs
+  s_d08c2f8539d57e::t_747e5fa6e848da 78
+mls-rs/src/test_utils/mod.rs
+  s_d08c2f8539d57e::t_fee3c0eb68d1c8 112,122
+mls-rs/src/tree_kem/mod.rs
+  s_d08c2f8539d57e::t_5277ee2ab73220 466,509-510,512,524-525,527-528,530,534-536,546,847,885,1658,1668-1747
+mls-rs/src/tree_kem/update_path.rs
+  s_d08c2f8539d57e::t_92cf4d03a1c530 5,99-114,119,294-314
+mls-rs/test_data/interop_passive_client_handle_commit.json
+  s_d08c2f8539d57e::t_a59023176ac445 10-14,16,20-21,25-26,38-42,44,48-49,53-54,66-70,72,76-77,81-82,94-98,100,104-105,109-110,122-126,128,132-133,137-138,150-154,156,160-161,165-166,178-182,184,188-189,193,195-196,208-212,214,218-219,223,225-226,238-242,244,248-249,253,255-256,268-272,274,278-279,283,285-286,298-302,304,308-309,313,315-316,328-332,334,338-339,343,345-346,358-362,364,368-369,373-378,380-381,393-397,399,403-404,408-409,421-425,427,431-432,436-437,449-453,455,459-460,464-465,477-481,483,487-488,492-493,505-509,511,515-516,520-521,533-537,539,543-544,548-549,561-565,567,571-572,576,578-579,591-595,597,601-602,606,608-609,621-625,627,631-632,636,638-639,651-655,657,661-662,666,668-669,681-685,687,691-692,696,698-699,711-715,717,721-722,726,728-729,741-745,747,751-752,756-761,763-764,776-780,782,786-787,791-792,804-808,810,814-815,819-820,832-836,838,842-843,847-848,860-864,866,870-871,875-876,888-892,894,898-899,903-904,916-920,922,926-927,931-932,944-948,950,954-955,959,961-962,974-978,980,984-985,989,991-992,1004-1008,1010,1014-1015,1019,1021-1022,1034-1038,1040,1044-1045,1049,1051-1052,1064-1068,1070,1074-1075,1079,1081-1082,1094-1098,1100,1104-1105,1109,1111-1112,1124-1128,1130,1134-1135,1139-1144,1146-1147,1159-1163,1165,1169-1170,1174-1175,1187-1191,1193,1197-1198,1202-1203,1215-1219,1221,1225-1226,1230-1231,1243-1247,1249,1253-1254,1258-1259,1271-1275,1277,1281-1282,1286-1287,1299-1303,1305,1309-1310,1314-1315,1327-1331,1333,1337-1338,1342,1344-1345,1357-1361,1363,1367-1368,1372,1374-1375,1387-1391,1393,1397-1398,1402,1404-1405,1417-1421,1423,1427-1428,1432,1434-1435,1447-1451,1453,1457-1458,1462,1464-1465,1477-1481,1483,1487-1488,1492,1494-1495,1507-1511,1513,1517-1518,1522-1527,1529-1530,1542-1546,1548,1552-1553,1557-1558,1570-1574,1576,1580-1581,1585-1586,1598-1602,1604,1608-1609,1613-1614,1626-1630,1632,1636-1637,1641-1642,1654-1658,1660,1664-1665,1669-1670,1682-1686,1688,1692-1693,1697-1698,1710-1714,1716,1720-1721,1725,1727-1728,1740-1744,1746,1750-1751,1755,1757-1758,1770-1774,1776,1780-1781,1785,1787-1788,1800-1804,1806,1810-1811,1815,1817-1818,1830-1834,1836,1840-1841,1845,1847-1848,1860-1864,1866,1870-1871,1875,1877-1878,1890-1894,1896,1900-1901,1905-1910,1912-1913,1925-1929,1931,1935-1936,1940-1941,1953-1957,1959,1963-1964,1968-1969,1981-1985,1987,1991-1992,1996-1997,2009-2013,2015,2019-2020,2024-2025,2037-2041,2043,2047-2048,2052-2053,2065-2069,2071,2075-2076,2080-2081,2093-2097,2099,2103-2104,2108,2110-2111,2123-2127,2129,2133-2134,2138,2140-2141,2153-2157,2159,2163-2164,2168,2170-2171,2183-2187,2189,2193-2194,2198,2200-2201,2213-2217,2219,2223-2224,2228,2230-2231,2243-2247,2249,2253-2254,2258,2260-2261,2273-2277,2279,2283-2284,2288-2293,2295-2296,2308-2312,2314,2318-2319,2323-2324,2336-2340,2342,2346-2347,2351-2352,2364-2368,2370,2374-2375,2379-2380,2392-2396,2398,2402-2403,2407-2408,2420-2424,2426,2430-2431,2435-2436,2448-2452,2454,2458-2459,2463-2464,2476-2480,2482,2486-2487,2491,2493-2494,2506-2510,2512,2516-2517,2521,2523-2524,2536-2540,2542,2546-2547,2551,2553-2554,2566-2570,2572,2576-2577,2581,2583-2584,2596-2600,2602,2606-2607,2611,2613-2614,2626-2630,2632,2636-2637,2641,2643-2644,2656-2660,2662,2666-2667,2671-2676,2678-2679
+mls-rs/test_data/interop_passive_client_welcome.json
+  s_d08c2f8539d57e::t_63c79d52055b43 5-9,11,17-21,23,34-38,40,51-55,57,63-69,75-81,92-98,109-115,121-125,127,133-137,139,150-154,156,167-171,173,179-185,191-197,208-214,225-231,237-241,243,249-253,255,266-270,272,283-287,289,295-301,307-313,324-330,341-347,353-357,359,365-369,371,382-386,388,399-403,405,411-417,423-429,440-446,457-463,469-473,475,481-485,487,498-502,504,515-519,521,527-533,539-545,556-562,573-579,585-589,591,597-601,603,614-618,620,631-635,637,643-649,655-661,672-678,689-695,701-705,707,713-717,719,730-734,736,747-751,753,759-765,771-777,788-794,805-811
+mls-rs/test_harness_integration/Cargo.toml
+  s_d08c2f8539d57e::t_c231366eed9b5c 9,29,32
+mls-rs/tests/client_tests.rs
+  s_d08c2f8539d57e::t_a115a7c56e95ca 37,99,106,341,872
+mls-rs/webdriver.json
+  s_d08c2f8539d57e::t_342ce4d8d32d0f 2-4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "10a42a5be82f1e833a9ecbe4f54371afa84f9db1",
+  "prompts": {},
+  "sessions": {
+    "s_d08c2f8539d57e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e0d8bb87-24d6-4529-975e-e3fed147236f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "token_usage": {
+    "attributable": {
+      "total": {
+        "input_tokens": 12,
+        "output_tokens": 2114,
+        "cache_creation_input_tokens": 21623,
+        "cache_read_input_tokens": 254576
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 12,
+          "output_tokens": 2114,
+          "cache_creation_input_tokens": 21623,
+          "cache_read_input_tokens": 254576
+        }
+      },
+      "tool_uses": {
+        "askuserquestion": 1,
+        "bash": 26
+      }
+    },
+    "by_prompt": {
+      "s_d08c2f8539d57e": {
+        "input_tokens": 12,
+        "output_tokens": 2114,
+        "cache_creation_input_tokens": 21623,
+        "cache_read_input_tokens": 254576
+      }
+    }
+  },
+  "proton_build": "1.7.6-proton.8"
+}
