@@ -1,0 +1,50 @@
+.github/CODEOWNERS
+  s_d08c2f8539d57e::t_91957054ee3474 1-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "15f8a1ec57b095653c438128ffe53c1ebac09eb5",
+  "prompts": {},
+  "sessions": {
+    "s_d08c2f8539d57e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e0d8bb87-24d6-4529-975e-e3fed147236f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "token_usage": {
+    "attributable": {
+      "total": {
+        "input_tokens": 90,
+        "output_tokens": 19277,
+        "cache_creation_input_tokens": 67206,
+        "cache_read_input_tokens": 3833057
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 90,
+          "output_tokens": 19277,
+          "cache_creation_input_tokens": 67206,
+          "cache_read_input_tokens": 3833057
+        }
+      },
+      "tool_uses": {
+        "bash": 22,
+        "write": 3
+      }
+    },
+    "by_prompt": {
+      "s_d08c2f8539d57e": {
+        "input_tokens": 90,
+        "output_tokens": 19277,
+        "cache_creation_input_tokens": 67206,
+        "cache_read_input_tokens": 3833057
+      }
+    }
+  },
+  "proton_build": "1.7.6-proton.8"
+}
