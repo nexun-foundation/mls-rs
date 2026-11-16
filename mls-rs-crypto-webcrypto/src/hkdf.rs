@@ -57,7 +57,7 @@ impl KdfType for Hkdf {
 
         for chunk in out.chunks_mut(self.extract_size()) {
             let input = [&t, info, &i.to_be_bytes()].concat();
-            t = self.hmac(prk, &input).await?;
+            t = crate::send(self.hmac(prk, &input)).await?;
             chunk.copy_from_slice(&t[0..chunk.len()]);
             i += 1;
         }
@@ -66,7 +66,7 @@ impl KdfType for Hkdf {
     }
 
     async fn extract(&self, salt: &[u8], ikm: &[u8]) -> Result<Vec<u8>, Self::Error> {
-        self.hmac(salt, ikm).await
+        crate::send(self.hmac(salt, ikm)).await
     }
 
     fn extract_size(&self) -> usize {

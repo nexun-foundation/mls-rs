@@ -42,8 +42,7 @@ impl mls_rs_crypto_traits::AeadType for Aead {
         aad: Option<&'a [u8]>,
         nonce: &[u8],
     ) -> Result<Vec<u8>, Self::Error> {
-        self.cipher(key, data, aad, nonce, KeyType::AesGcmEncrypt)
-            .await
+        crate::send(self.cipher(key, data, aad, nonce, KeyType::AesGcmEncrypt)).await
     }
 
     #[allow(clippy::needless_lifetimes)]
@@ -54,8 +53,7 @@ impl mls_rs_crypto_traits::AeadType for Aead {
         aad: Option<&'a [u8]>,
         nonce: &[u8],
     ) -> Result<Vec<u8>, Self::Error> {
-        self.cipher(key, ciphertext, aad, nonce, KeyType::AesGcmDecrypt)
-            .await
+        crate::send(self.cipher(key, ciphertext, aad, nonce, KeyType::AesGcmDecrypt)).await
     }
 
     fn key_size(&self) -> usize {

@@ -143,15 +143,15 @@ impl DhType for Ecdh {
         secret_key: &HpkeSecretKey,
         public_key: &HpkePublicKey,
     ) -> Result<Vec<u8>, Self::Error> {
-        self.dh(secret_key, public_key).await
+        crate::send(self.dh(secret_key, public_key)).await
     }
 
     async fn generate(&self) -> Result<(HpkeSecretKey, HpkePublicKey), Self::Error> {
-        self.generate().await
+        crate::send(self.generate()).await
     }
 
     async fn to_public(&self, secret_key: &HpkeSecretKey) -> Result<HpkePublicKey, Self::Error> {
-        self.to_public(secret_key).await
+        crate::send(self.to_public(secret_key)).await
     }
 
     fn bitmask_for_rejection_sampling(&self) -> SamplingMethod {
