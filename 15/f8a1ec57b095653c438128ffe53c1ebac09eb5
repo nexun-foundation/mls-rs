@@ -46,5 +46,9 @@
       }
     }
   },
+  "activity": {
+    "added_sloc": 8,
+    "checkpoints": 1
+  },
   "proton_build": "1.7.6-proton.8"
 }
