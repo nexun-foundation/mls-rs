@@ -1029,7 +1029,7 @@ async fn test_application_data_proposals(
     )
     .await;
 
-    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
+    let committer = (0..groups.len()).sample(&mut rand::rng(), 1)[0];
 
     let commit_output = groups[committer]
         .commit_builder()
@@ -1115,7 +1115,7 @@ async fn test_application_data_update_proposals(
     )
     .await;
 
-    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
+    let committer = (0..groups.len()).sample(&mut rand::rng(), 1)[0];
     let commit_output = groups[committer]
         .commit_builder()
         .application_data_update(10, AppDataUpdateOperation::Update(b"hello".to_vec()))
@@ -1149,7 +1149,7 @@ async fn test_application_data_update_proposals(
         }
     );
 
-    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
+    let committer = (0..groups.len()).sample(&mut rand::rng(), 1)[0];
     let commit_output = groups[committer]
         .commit_builder()
         .application_data_update(10, AppDataUpdateOperation::Update(b"world".to_vec()))
@@ -1214,7 +1214,7 @@ async fn test_application_data_update_invalid_proposals(
     )
     .await;
 
-    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
+    let committer = (0..groups.len()).sample(&mut rand::rng(), 1)[0];
     // unknown component id
     let err = groups[committer]
         .commit_builder()
@@ -1335,7 +1335,7 @@ async fn test_application_data_update_external_proposals(
     }
 
     // one of the members commits the proposal and sends to other members
-    let committer = (0..groups.len()).choose_multiple(&mut rand::rng(), 1)[0];
+    let committer = (0..groups.len()).sample(&mut rand::rng(), 1)[0];
     let commit_output = groups[committer].commit_builder().build().await.unwrap();
 
     let sender = groups[committer].current_member_index() as usize;
