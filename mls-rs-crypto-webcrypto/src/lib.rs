@@ -9,6 +9,13 @@ mod ec;
 mod hkdf;
 mod key_type;
 
+/// The `CipherSuiteProvider` and crypto traits require `Send` futures, but futures backed by
+/// JS promises (`JsFuture`) are not `Send`. `wasm32-unknown-unknown` runs on a single thread, so
+/// such a future is never actually moved across threads; `SendWrapper` asserts this at runtime.
+pub(crate) fn send<F: core::future::Future>(future: F) -> SendWrapper<F> {
+    SendWrapper::new(future)
+}
+
 use mls_rs_core::{
     crypto::{
         CipherSuite, CipherSuiteProvider, CryptoProvider, HpkeCiphertext, HpkePsk, HpkePublicKey,
@@ -25,6 +32,7 @@ use mls_rs_crypto_hpke::{
 
 use mls_rs_crypto_traits::{AeadType, KdfType, KemId};
 
+use send_wrapper::SendWrapper;
 use wasm_bindgen::JsValue;
 use web_sys::SubtleCrypto;
 use zeroize::Zeroizing;
@@ -140,11 +148,11 @@ impl CipherSuiteProvider for WebCryptoCipherSuite {
     }
 
     async fn hash(&self, data: &[u8]) -> Result<Vec<u8>, Self::Error> {
-        self.hkdf.hash(data).await
+        send(self.hkdf.hash(data)).await
     }
 
     async fn mac(&self, key: &[u8], data: &[u8]) -> Result<Vec<u8>, Self::Error> {
-        self.hkdf.hmac(key, data).await
+        send(self.hkdf.hmac(key, data)).await
     }
 
     async fn aead_seal(
@@ -313,7 +321,7 @@ impl CipherSuiteProvider for WebCryptoCipherSuite {
     async fn signature_key_generate(
         &self,
     ) -> Result<(SignatureSecretKey, SignaturePublicKey), Self::Error> {
-        self.ec_signer.generate().await
+        send(self.ec_signer.generate()).await
     }
 
     async fn signature_key_derive_public(
@@ -328,7 +336,7 @@ impl CipherSuiteProvider for WebCryptoCipherSuite {
         secret_key: &SignatureSecretKey,
         data: &[u8],
     ) -> Result<Vec<u8>, Self::Error> {
-        self.ec_signer.sign(secret_key, data).await
+        send(self.ec_signer.sign(secret_key, data)).await
     }
 
     async fn verify(
@@ -337,7 +345,7 @@ impl CipherSuiteProvider for WebCryptoCipherSuite {
         signature: &[u8],
         data: &[u8],
     ) -> Result<(), Self::Error> {
-        self.ec_signer.verify(public_key, data, signature).await
+        send(self.ec_signer.verify(public_key, data, signature)).await
     }
 }
 
