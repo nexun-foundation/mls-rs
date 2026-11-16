@@ -1,0 +1,92 @@
+mls-rs/tests/client_tests.rs
+  s_d08c2f8539d57e::t_5786e4ae158892 996
+mls-rs/src/client.rs
+  s_d08c2f8539d57e::t_5786e4ae158892 635,1285
+mls-rs/src/group/proposal_filter/filtering.rs
+  s_d08c2f8539d57e::t_5786e4ae158892 72-79,1133,1186
+mls-rs/examples/complete_basic_usage.rs
+  s_d08c2f8539d57e::t_5786e4ae158892 54,97,152
+mls-rs/src/group/mod.rs
+  s_d08c2f8539d57e::t_5786e4ae158892 1729,5643-5649
+mls-rs/src/group/exported_tree.rs
+  s_d08c2f8539d57e::t_5786e4ae158892 49
+mls-rs/src/group/resumption.rs
+  s_d08c2f8539d57e::t_5786e4ae158892 20-22,266
+.github/workflows/no_std_build.yml
+  s_d08c2f8539d57e::t_5786e4ae158892 23,26,29,32,37
+mls-rs/src/group/commit.rs
+  s_d08c2f8539d57e::t_5786e4ae158892 663,712
+mls-rs-ffi/src/lib.rs
+  s_d08c2f8539d57e::t_5786e4ae158892 19-20
+mls-rs/src/group/mls_rules.rs
+  s_d08c2f8539d57e::t_5786e4ae158892 18-20,196-213,280-284,381-385
+  s_d08c2f8539d57e::t_b66372aaac7994 386
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.6",
+  "base_commit_sha": "bef8aea7d4cc3077752b0da474f680dae57f3234",
+  "prompts": {},
+  "sessions": {
+    "s_d08c2f8539d57e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e0d8bb87-24d6-4529-975e-e3fed147236f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
+    }
+  },
+  "commit_stats": {
+    "human_additions": 0,
+    "unknown_additions": 0,
+    "ai_additions": 70,
+    "ai_accepted": 70,
+    "git_diff_deleted_lines": 111,
+    "git_diff_added_lines": 70,
+    "tool_model_breakdown": {
+      "claude::claude-opus-5-5": {
+        "ai_additions": 70,
+        "ai_accepted": 70
+      }
+    }
+  },
+  "token_usage": {
+    "attributable": {
+      "total": {
+        "input_tokens": 18,
+        "output_tokens": 4487,
+        "cache_creation_input_tokens": 19311,
+        "cache_read_input_tokens": 1129651
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 18,
+          "output_tokens": 4487,
+          "cache_creation_input_tokens": 19311,
+          "cache_read_input_tokens": 1129651
+        }
+      },
+      "tool_uses": {
+        "bash": 9
+      }
+    },
+    "by_prompt": {
+      "s_d08c2f8539d57e": {
+        "input_tokens": 18,
+        "output_tokens": 4487,
+        "cache_creation_input_tokens": 19311,
+        "cache_read_input_tokens": 1129651
+      }
+    },
+    "origins": [
+      "1bb1c543ac2c4146acced6e4e26332d702238724"
+    ]
+  },
+  "activity": {
+    "added_sloc": 63,
+    "deleted_sloc": 106,
+    "checkpoints": 1
+  },
+  "proton_build": "1.7.6-proton.8"
+}
