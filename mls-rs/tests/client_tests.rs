@@ -949,6 +949,57 @@ async fn can_process_external_commit_if_pending_commit() {
         .await
         .unwrap();
 }
+#[cfg(feature = "psk")]
+#[maybe_async::test(not(mls_build_async), async(mls_build_async, futures_test))]
+async fn branch_cannot_add_clients() {
+    let alice = get_default_test_groups(2).await.remove(0);
+
+    let kp = generate_default_client(12345)
+        .await
+        .generate_key_package_message(Default::default(), Default::default(), None)
+        .await
+        .unwrap();
+
+    let res = alice
+        .branch(vec![1, 2, 3], vec![kp], None)
+        .await
+        .map(|_| ());
+
+    assert_matches!(res, Err(MlsError::NotASubgroup));
+}
+
+#[cfg(feature = "psk")]
+#[maybe_async::test(not(mls_build_async), async(mls_build_async, futures_test))]
+async fn reinit_cannot_add_clients() {
+    let mut alice = get_default_test_groups(2).await.remove(0);
+    let cs = TestCryptoProvider::all_supported_cipher_suites()[0];
+
+    let kp = generate_default_client(12345)
+        .await
+        .generate_key_package_message(Default::default(), Default::default(), None)
+        .await
+        .unwrap();
+
+    alice
+        .commit_builder()
+        .reinit(None, ProtocolVersion::MLS_10, cs, Default::default())
+        .unwrap()
+        .build()
+        .await
+        .unwrap();
+
+    alice.apply_pending_commit().await.unwrap();
+
+    let res = alice
+        .get_reinit_client(None, None)
+        .unwrap()
+        .commit(vec![kp], Default::default(), None)
+        .await
+        .map(|_| ());
+
+    assert_matches!(res, Err(MlsError::NotASubgroup));
+}
+
 #[cfg(all(feature = "application_data", feature = "private_message"))]
 #[cfg_attr(not(mls_build_async), maybe_async::must_be_sync)]
 async fn test_application_data_proposals(

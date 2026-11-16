@@ -15,6 +15,9 @@ use crate::{
 #[cfg(feature = "application_data")]
 use super::application_data::ComponentId;
 
+#[cfg(feature = "custom_proposal")]
+use crate::group::proposal::CustomProposal;
+
 use super::GroupContext;
 use crate::LeafNode;
 use alloc::boxed::Box;
@@ -203,7 +206,8 @@ pub trait MlsRules: Send + Sync {
     /// a received commit will require an update path.
     ///
     /// The default implementation returns `true` (conservative: always require a path).
-    fn custom_proposal_requires_update_path(&self, _custom_proposal_type: ProposalType) -> bool {
+    #[cfg(feature = "custom_proposal")]
+    fn custom_proposal_requires_update_path(&self, _proposal: &CustomProposal) -> bool {
         true
     }
 
@@ -232,10 +236,6 @@ pub trait MlsRules: Send + Sync {
         _update: &[u8],
         _roster: &Roster,
     ) -> Result<Vec<u8>, Self::Error>;
-    #[cfg(feature = "custom_proposal")]
-    fn custom_proposal_requires_update_path(&self, _proposal: &CustomProposal) -> bool {
-        true
-    }
 }
 
 macro_rules! delegate_mls_rules {
@@ -280,6 +280,20 @@ macro_rules! delegate_mls_rules {
             #[cfg(feature = "custom_proposal")]
             fn custom_proposal_requires_update_path(&self, proposal: &CustomProposal) -> bool {
                 (**self).custom_proposal_requires_update_path(proposal)
+            }
+
+            #[cfg(feature = "application_data")]
+            #[cfg_attr(mls_build_async, maybe_async::must_be_async)]
+            async fn update_components(
+                &self,
+                component_id: ComponentId,
+                component_data: Option<&[u8]>,
+                update: &[u8],
+                roster: &Roster,
+            ) -> Result<Vec<u8>, Self::Error> {
+                (**self)
+                    .update_components(component_id, component_data, update, roster)
+                    .await
             }
         }
     };
@@ -368,5 +382,16 @@ impl MlsRules for DefaultMlsRules {
     fn custom_proposal_requires_update_path(&self, proposal: &CustomProposal) -> bool {
         self.custom_proposals_that_require_update_path
             .contains(&proposal.proposal_type())
+    }
+
+    #[cfg(feature = "application_data")]
+    async fn update_components(
+        &self,
+        _component_id: ComponentId,
+        _component_data: Option<&[u8]>,
+        update: &[u8],
+        _roster: &Roster,
+    ) -> Result<Vec<u8>, Self::Error> {
+        Ok(update.to_owned())
     }
 }

@@ -1282,7 +1282,7 @@ mod tests {
         let (bob_identity, secret_key) = get_test_signing_identity(TEST_CIPHER_SUITE, b"bob").await;
 
         let bob = TestClientBuilder::new_for_test()
-            .signing_identity(bob_identity.clone(), secret_key, TEST_CIPHER_SUITE)
+            .signing_identity(bob_identity.clone(), secret_key)
             .build();
 
         let (_, external_commit) = bob.commit_external(group_info_msg).await.unwrap();
