@@ -163,5 +163,11 @@ mls-rs-crypto-traits/src/aead.rs
       "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
     }
   },
+  "activity": {
+    "added_sloc": 2418,
+    "deleted_sloc": 611,
+    "checkpoints": 4,
+    "span_seconds": 440
+  },
   "proton_build": "1.7.6-proton.8"
 }
