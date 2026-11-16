@@ -22,5 +22,10 @@
       }
     }
   },
+  "activity": {
+    "added_sloc": 263,
+    "deleted_sloc": 433,
+    "checkpoints": 1
+  },
   "proton_build": "1.7.6-proton.8"
 }
