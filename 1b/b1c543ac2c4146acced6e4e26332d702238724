@@ -37,6 +37,20 @@ mls-rs/src/group/mls_rules.rs
       "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
     }
   },
+  "commit_stats": {
+    "human_additions": 0,
+    "unknown_additions": 0,
+    "ai_additions": 70,
+    "ai_accepted": 70,
+    "git_diff_deleted_lines": 111,
+    "git_diff_added_lines": 70,
+    "tool_model_breakdown": {
+      "claude::claude-opus-5-5": {
+        "ai_additions": 70,
+        "ai_accepted": 70
+      }
+    }
+  },
   "token_usage": {
     "attributable": {
       "total": {
@@ -65,6 +79,11 @@ mls-rs/src/group/mls_rules.rs
         "cache_read_input_tokens": 1129651
       }
     }
+  },
+  "activity": {
+    "added_sloc": 63,
+    "deleted_sloc": 106,
+    "checkpoints": 1
   },
   "proton_build": "1.7.6-proton.8"
 }
