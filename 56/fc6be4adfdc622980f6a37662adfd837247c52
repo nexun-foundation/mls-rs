@@ -2,6 +2,8 @@ mls-rs-crypto-hpke/Cargo.toml
   s_b288a0580a2bca::t_46e79d11736f97 35
 mls-rs-crypto-rustcrypto/src/x509/validator.rs
   s_b288a0580a2bca::t_0a9e418ec27467 57,106,130,143,165,168-173,175,180,204,1106-1107
+  s_61e81c7751a6f8::t_7f456e235471d6 1006-1007
+  s_61e81c7751a6f8::t_46ec359d23feed 250,253-311,575,592,716,733,845,862,1073,1090
 mls-rs-provider-sqlite/Cargo.toml
   s_b288a0580a2bca::t_b46346f4f8255c 25
 mls-rs-identity-x509/Cargo.toml
@@ -24,6 +26,7 @@ mls-rs-crypto-rustcrypto/src/lib.rs
   s_b288a0580a2bca::t_aa6636aebbed3a 61,66-67
 mls-rs-crypto-rustcrypto/src/x509/util.rs
   s_b288a0580a2bca::t_cbbb98d14b71f1 29,205,244-245,248-249,251
+  s_61e81c7751a6f8::t_f0b85a1373cff2 130-131,149-150
 mls-rs-crypto-rustcrypto/src/ec.rs
   s_b288a0580a2bca::t_f1795020b7a4a1 74-75
 mls-rs-provider-sqlite/src/test_utils.rs
@@ -39,6 +42,14 @@ mls-rs/benches/group_application.rs
   "base_commit_sha": "56fc6be4adfdc622980f6a37662adfd837247c52",
   "prompts": {},
   "sessions": {
+    "s_61e81c7751a6f8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8c26a477-3fa6-4384-aa30-ff547bcfb491",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "jean-sol-patre <jeansolpatre@pm.me>"
+    },
     "s_b288a0580a2bca": {
       "agent_id": {
         "tool": "claude",
@@ -65,24 +76,46 @@ mls-rs/benches/group_application.rs
   "token_usage": {
     "attributable": {
       "total": {
-        "input_tokens": 20,
-        "output_tokens": 2852,
-        "cache_creation_input_tokens": 33126,
-        "cache_read_input_tokens": 525817
+        "input_tokens": 58,
+        "output_tokens": 11363,
+        "cache_creation_input_tokens": 84581,
+        "cache_read_input_tokens": 1699559
       },
       "by_tool_model": {
         "claude::claude-opus-5-5": {
-          "input_tokens": 20,
-          "output_tokens": 2852,
-          "cache_creation_input_tokens": 33126,
-          "cache_read_input_tokens": 525817
+          "input_tokens": 58,
+          "output_tokens": 11363,
+          "cache_creation_input_tokens": 84581,
+          "cache_read_input_tokens": 1699559
         }
       },
       "tool_uses": {
-        "bash": 242
+        "bash": 299
+      }
+    },
+    "carried": {
+      "total": {
+        "input_tokens": 46,
+        "output_tokens": 7540,
+        "cache_creation_input_tokens": 13845,
+        "cache_read_input_tokens": 4000816
+      },
+      "by_tool_model": {
+        "claude::claude-opus-5-5": {
+          "input_tokens": 46,
+          "output_tokens": 7540,
+          "cache_creation_input_tokens": 13845,
+          "cache_read_input_tokens": 4000816
+        }
       }
     },
     "by_prompt": {
+      "s_61e81c7751a6f8": {
+        "input_tokens": 38,
+        "output_tokens": 8511,
+        "cache_creation_input_tokens": 51455,
+        "cache_read_input_tokens": 1173742
+      },
       "s_b288a0580a2bca": {
         "input_tokens": 20,
         "output_tokens": 2852,
@@ -91,6 +124,7 @@ mls-rs/benches/group_application.rs
       }
     },
     "origins": [
+      "56fc6be4adfdc622980f6a37662adfd837247c52",
       "de03ef10da6dccb5b0e9bee35a310a7c5f60e81a"
     ]
   },
