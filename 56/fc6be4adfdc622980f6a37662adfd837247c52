@@ -128,5 +128,11 @@ mls-rs/benches/group_application.rs
       "de03ef10da6dccb5b0e9bee35a310a7c5f60e81a"
     ]
   },
+  "activity": {
+    "added_sloc": 94,
+    "deleted_sloc": 54,
+    "checkpoints": 4,
+    "span_seconds": 122
+  },
   "proton_build": "1.7.6-proton.8"
 }
