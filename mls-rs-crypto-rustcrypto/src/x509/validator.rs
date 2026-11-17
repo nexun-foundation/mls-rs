@@ -54,7 +54,7 @@ impl X509Validator {
                 // Verify the self-signture. Time is validated when CAs are used
                 let cert = Certificate::from_der(&cert_data)?;
                 verify_cert(&cert, &cert, None)?;
-                let subject = cert.tbs_certificate.subject.to_der()?;
+                let subject = cert.tbs_certificate().subject().to_der()?;
                 Ok((subject, cert_data))
             })
             .collect::<Result<_, X509Error>>()?;
@@ -103,7 +103,7 @@ impl X509Validator {
         {
             let maybe_ca = self
                 .root_ca_list
-                .get(&cert1.tbs_certificate.issuer.to_der()?);
+                .get(&cert1.tbs_certificate().issuer().to_der()?);
 
             let verifier = maybe_ca
                 .map(|ca| {
@@ -127,7 +127,7 @@ impl X509Validator {
                 let leaf_cert = chain.first().ok_or(X509Error::EmptyCertificateChain)?;
 
                 let pub_key =
-                    pub_key_from_spki(&leaf_cert.tbs_certificate.subject_public_key_info)?;
+                    pub_key_from_spki(leaf_cert.tbs_certificate().subject_public_key_info())?;
 
                 let pub_signing_key = pub_key_to_uncompressed(&pub_key).map(Into::into)?;
 
@@ -140,7 +140,7 @@ impl X509Validator {
 }
 
 fn verify_time(cert: &Certificate, timestamp: MlsTime) -> Result<(), X509Error> {
-    let validity = cert.tbs_certificate.validity;
+    let validity = cert.tbs_certificate().validity();
     let not_before = MlsTime::from(validity.not_before.to_unix_duration());
     let not_after = MlsTime::from(validity.not_after.to_unix_duration());
 
@@ -162,18 +162,22 @@ fn verify_cert(
 ) -> Result<(), X509Error> {
     // Re-encode the verified TBS struct to get the signed bytes
     let mut tbs = Vec::new();
-    verified.tbs_certificate.encode_to_vec(&mut tbs)?;
+    verified.tbs_certificate().encode_to_vec(&mut tbs)?;
 
     // Create a signer for the verifier
-    let signer =
-        signer_from_algorithm(&verifier.tbs_certificate.subject_public_key_info.algorithm)?;
+    let signer = signer_from_algorithm(
+        &verifier
+            .tbs_certificate()
+            .subject_public_key_info()
+            .algorithm,
+    )?;
 
-    let pub_key = pub_key_from_spki(&verifier.tbs_certificate.subject_public_key_info)?;
+    let pub_key = pub_key_from_spki(verifier.tbs_certificate().subject_public_key_info())?;
 
     // Verify the signature
     signer.verify(
         &pub_key_to_uncompressed(&pub_key).map(Into::into)?,
-        verified.signature.raw_bytes(),
+        verified.signature().raw_bytes(),
         &tbs,
     )?;
 
@@ -197,7 +201,7 @@ fn validate_self_signed(
 
     verify_cert(&cert, &cert, timestamp)?;
 
-    let pub_key = pub_key_from_spki(&cert.tbs_certificate.subject_public_key_info)?;
+    let pub_key = pub_key_from_spki(cert.tbs_certificate().subject_public_key_info())?;
 
     let pub_signing_key = pub_key_to_uncompressed(&pub_key).map(Into::into)?;
 
@@ -243,8 +247,67 @@ mod tests {
         pkix::{BasicConstraints, KeyUsage, KeyUsages},
         Extension,
     };
-    use x509_cert::{name::Name, serial_number::SerialNumber, time::Validity, TbsCertificate};
+    use x509_cert::{name::Name, serial_number::SerialNumber, time::Validity};
     use x509_cert::{Certificate, Version};
+
+    /// Mirror of `TbsCertificate`, whose fields are private in x509-cert 0.3.
+    struct TestTbs {
+        version: Version,
+        serial_number: SerialNumber,
+        signature: AlgorithmIdentifier<x509_cert::der::Any>,
+        issuer: Name,
+        validity: Validity,
+        subject: Name,
+        subject_public_key_info: SubjectPublicKeyInfo<x509_cert::der::Any, BitString>,
+        issuer_unique_id: Option<BitString>,
+        subject_unique_id: Option<BitString>,
+        extensions: Option<Vec<Extension>>,
+    }
+
+    fn der_wrap(tag: x509_cert::der::Tag, body: Vec<u8>) -> Vec<u8> {
+        let len = x509_cert::der::Length::try_from(body.len()).unwrap();
+        let mut out = x509_cert::der::Header::new(tag, len).to_der().unwrap();
+        out.extend(body);
+        out
+    }
+
+    fn explicit(number: u32, body: Vec<u8>) -> Vec<u8> {
+        der_wrap(
+            x509_cert::der::Tag::ContextSpecific {
+                constructed: true,
+                number: x509_cert::der::TagNumber(number),
+            },
+            body,
+        )
+    }
+
+    impl TestTbs {
+        fn to_der(&self) -> x509_cert::der::Result<Vec<u8>> {
+            assert!(self.issuer_unique_id.is_none() && self.subject_unique_id.is_none());
+            let mut body = explicit(0, (self.version as u8).to_der()?);
+            body.extend(self.serial_number.to_der()?);
+            body.extend(self.signature.to_der()?);
+            body.extend(self.issuer.to_der()?);
+            body.extend(self.validity.to_der()?);
+            body.extend(self.subject.to_der()?);
+            body.extend(self.subject_public_key_info.to_der()?);
+            if let Some(extensions) = &self.extensions {
+                body.extend(explicit(3, extensions.to_der()?));
+            }
+            Ok(der_wrap(x509_cert::der::Tag::Sequence, body))
+        }
+
+        fn into_cert(
+            self,
+            signature_algorithm: AlgorithmIdentifier<x509_cert::der::Any>,
+            signature: BitString,
+        ) -> Certificate {
+            let mut body = self.to_der().unwrap();
+            body.extend(signature_algorithm.to_der().unwrap());
+            body.extend(signature.to_der().unwrap());
+            Certificate::from_der(&der_wrap(x509_cert::der::Tag::Sequence, body)).unwrap()
+        }
+    }
 
     use crate::{
         ec::pub_key_from_uncompressed,
@@ -509,7 +572,7 @@ mod tests {
             let der_pub = pub_key_to_spki(&ec_pub).unwrap();
             let spki = SubjectPublicKeyInfo::from_der(&der_pub).unwrap();
 
-            let tbs = TbsCertificate {
+            let tbs = TestTbs {
                 version: Version::V3,
                 serial_number: SerialNumber::from(serial),
                 signature: ctx.algorithm.clone(),
@@ -526,11 +589,7 @@ mod tests {
             let signature_bytes = ctx.signer.sign(issuer_secret, &tbs_der).unwrap();
             let signature = BitString::from_bytes(&signature_bytes).unwrap();
 
-            Certificate {
-                tbs_certificate: tbs,
-                signature_algorithm: ctx.algorithm.clone(),
-                signature,
-            }
+            tbs.into_cert(ctx.algorithm.clone(), signature)
         }
 
         let ctx = SignerContext {
@@ -654,7 +713,7 @@ mod tests {
             let der_pub = pub_key_to_spki(&ec_pub).unwrap();
             let spki = SubjectPublicKeyInfo::from_der(&der_pub).unwrap();
 
-            let tbs = TbsCertificate {
+            let tbs = TestTbs {
                 version: Version::V3,
                 serial_number: SerialNumber::from(serial),
                 signature: ctx.algorithm.clone(),
@@ -671,11 +730,7 @@ mod tests {
             let signature_bytes = ctx.signer.sign(issuer_secret, &tbs_der).unwrap();
             let signature = BitString::from_bytes(&signature_bytes).unwrap();
 
-            Certificate {
-                tbs_certificate: tbs,
-                signature_algorithm: ctx.algorithm.clone(),
-                signature,
-            }
+            tbs.into_cert(ctx.algorithm.clone(), signature)
         }
 
         let ctx = SignerContext {
@@ -787,7 +842,7 @@ mod tests {
             let der_pub = pub_key_to_spki(&ec_pub).unwrap();
             let spki = SubjectPublicKeyInfo::from_der(&der_pub).unwrap();
 
-            let tbs = TbsCertificate {
+            let tbs = TestTbs {
                 version: Version::V3,
                 serial_number: SerialNumber::from(serial),
                 signature: ctx.algorithm.clone(),
@@ -804,11 +859,7 @@ mod tests {
             let signature_bytes = ctx.signer.sign(issuer_secret, &tbs_der).unwrap();
             let signature = BitString::from_bytes(&signature_bytes).unwrap();
 
-            Certificate {
-                tbs_certificate: tbs,
-                signature_algorithm: ctx.algorithm.clone(),
-                signature,
-            }
+            tbs.into_cert(ctx.algorithm.clone(), signature)
         }
 
         fn basic_constraints_with_path_len(path_len_constraint: Option<u8>) -> Extension {
@@ -952,8 +1003,8 @@ mod tests {
 
         let leaf = Certificate::from_der(chain.leaf().unwrap()).unwrap();
         assert!(
-            leaf.tbs_certificate.extensions.is_none()
-                || leaf.tbs_certificate.extensions.as_ref().unwrap().is_empty(),
+            leaf.tbs_certificate().extensions().is_none()
+                || leaf.tbs_certificate().extensions().unwrap().is_empty(),
         );
 
         let validator = X509Validator::new(vec![root]).unwrap();
@@ -1019,7 +1070,7 @@ mod tests {
         let der_pub = pub_key_to_spki(&ec_pub).unwrap();
         let spki = SubjectPublicKeyInfo::from_der(&der_pub).unwrap();
 
-        let tbs = TbsCertificate {
+        let tbs = TestTbs {
             version: Version::V3,
             serial_number: SerialNumber::from(1u64),
             signature: algorithm.clone(),
@@ -1036,11 +1087,7 @@ mod tests {
         let signature_bytes = signer.sign(&secret, &tbs_der).unwrap();
         let signature = BitString::from_bytes(&signature_bytes).unwrap();
 
-        let cert = Certificate {
-            tbs_certificate: tbs,
-            signature_algorithm: algorithm,
-            signature,
-        };
+        let cert = tbs.into_cert(algorithm, signature);
 
         let chain: CertificateChain = vec![DerCertificate::from(cert.to_der().unwrap())].into();
 
@@ -1056,8 +1103,8 @@ mod tests {
 
         let expected = Certificate::from_der(chain.leaf().unwrap())
             .unwrap()
-            .tbs_certificate
-            .subject_public_key_info
+            .tbs_certificate()
+            .subject_public_key_info()
             .subject_public_key
             .raw_bytes()
             .to_vec()
